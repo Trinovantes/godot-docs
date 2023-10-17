@@ -2,7 +2,7 @@
     "type": "module",
     "private": "true",
     "scripts": {
-        "playground": "bun run .vitepress/playground.ts",
+        "playground": "bun run src/playground.ts",
         "lint": "vue-tsc --noemit && eslint .",
         "dev": "vitepress dev --port 8080",
         "build": "vitepress build",
@@ -24,6 +24,7 @@
         "eslint-utils": "^3.0.0",
         "typescript": "^5.2.2",
         "vitepress": "^1.0.0-rc.22",
+        "vitepress-plugin-tabs": "^0.4.1",
         "vue": "^3.3.4",
         "vue-tsc": "^1.0.24"
     }

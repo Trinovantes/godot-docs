@@ -37,6 +37,8 @@
     ],
     "include": [
         "**/*",
-        ".eslintrc.js",
+        ".eslintrc.cjs",
+        ".vitepress/config.ts",
+        ".vitepress/theme/index.ts",
     ],
 }
