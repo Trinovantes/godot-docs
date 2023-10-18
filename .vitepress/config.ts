@@ -1,10 +1,6 @@
 import { defineConfig } from 'vitepress'
 import { tabsMarkdownPlugin } from 'vitepress-plugin-tabs'
-import { computeNavGroups } from '../src/computeNavGroups'
-import { computeSidebarGroups } from '../src/computeSidebarGroups'
-import { getDocFiles } from '../src/getDocFiles'
-
-const files = await getDocFiles('./docs')
+import { generator } from '../src/DocsGenerator'
 
 export default defineConfig({
     title: 'Godot',
@@ -17,8 +13,8 @@ export default defineConfig({
             },
         ],
 
-        nav: computeNavGroups(files),
-        sidebar: computeSidebarGroups(files),
+        nav: generator.getVitePressNav(),
+        sidebar: generator.getVitePressSidebar(),
     },
     markdown: {
         config(md) {
@@ -26,5 +22,6 @@ export default defineConfig({
         },
     },
 
+    cleanUrls: true,
     srcDir: './src/routes',
 })
