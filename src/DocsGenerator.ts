@@ -1,8 +1,10 @@
 import path from 'node:path'
 import fs from 'node:fs'
 import { execSync } from 'node:child_process'
-import { HTMLElement, parse } from 'node-html-parser'
+import { parse, HTMLElement } from 'node-html-parser'
 import { DefaultTheme } from 'vitepress'
+import { VitePressRoute } from './VitePressRoute'
+import assert from 'node:assert'
 
 type DocNavGroup = {
     dir: string
@@ -14,14 +16,8 @@ type DocItem = {
     urlPath: string | null
     absPath: string | null
     rootNode: HTMLElement | null
+    lastUpdated: number | null
     children?: Array<DocItem>
-}
-
-type VitePressRoute = {
-    params: {
-        urlPath: string
-    }
-    content: string
 }
 
 export class DocsGenerator {
@@ -83,10 +79,7 @@ export class DocsGenerator {
                 const indexFileIdx = children.findIndex((child) => child.absPath?.endsWith(`/${entry.name}/index.rst`))
                 if (indexFileIdx >= 0) {
                     files.push({
-                        title: children[indexFileIdx].title,
-                        urlPath: children[indexFileIdx].urlPath,
-                        absPath: children[indexFileIdx].absPath,
-                        rootNode: children[indexFileIdx].rootNode,
+                        ...children[indexFileIdx],
                         children: children.toSpliced(indexFileIdx, 1),
                     })
                 } else {
@@ -95,18 +88,22 @@ export class DocsGenerator {
                         urlPath: null,
                         absPath: null,
                         rootNode: null,
+                        lastUpdated: null,
                         children,
                     })
                 }
-            } else if (absPath.endsWith('.rst')) {
+            } else if (absPath.endsWith('submitting_to_assetlib.rst')) {
+                const lastUpdated = fs.statSync(absPath).mtime.getTime()
+
                 const rst = fs.readFileSync(absPath).toString('utf-8')
                 const refs = /\.\. _([\w\-.@]+)/gm.exec(rst)?.slice(1) ?? []
                 for (const ref of refs) {
+                    assert(!this.docRefs.has(ref), `ref:${ref} already exists`)
                     this.docRefs.set(ref, urlPath)
                 }
 
                 const html = execSync(`pandoc --from=rst --to=html ${absPath}`).toString('utf-8')
-                const rootNode = parse(html).removeWhitespace()
+                const rootNode = parse(html)
                 if (shouldIgnoreDoc(rootNode)) {
                     continue
                 }
@@ -120,6 +117,7 @@ export class DocsGenerator {
                     title,
                     urlPath,
                     absPath,
+                    lastUpdated,
                     rootNode,
                 })
             }
@@ -191,12 +189,14 @@ export class DocsGenerator {
         const routes = new Array<VitePressRoute>()
         const findRoutes = (docItems: Array<DocItem>): void => {
             for (const item of docItems) {
-                if (item.urlPath && item.rootNode) {
+                if (item.urlPath) {
                     routes.push({
                         params: {
                             urlPath: item.urlPath.replace(new RegExp(`^/${dir}/`), '/'),
+                            title: item.title,
+                            lastUpdated: item.lastUpdated ?? undefined,
                         },
-                        content: processRawContent(item.rootNode),
+                        content: processRawContent(item, this.rootDir),
                     })
                 }
 
@@ -238,11 +238,13 @@ function getDisplayName(name: string): string {
 }
 
 function shouldIgnoreDoc(rootNode: HTMLElement): boolean {
-    if (rootNode.childNodes.length !== 2) {
+    const children = rootNode.querySelectorAll('> *')
+
+    if (children.length !== 2) {
         return false
     }
 
-    const first = rootNode.firstChild
+    const first = children[0]
     if (!(first instanceof HTMLElement)) {
         return false
     }
@@ -250,7 +252,7 @@ function shouldIgnoreDoc(rootNode: HTMLElement): boolean {
         return false
     }
 
-    const second = rootNode.lastChild
+    const second = children[1]
     if (!(second instanceof HTMLElement)) {
         return false
     }
@@ -264,27 +266,43 @@ function shouldIgnoreDoc(rootNode: HTMLElement): boolean {
     return true
 }
 
-function processRawContent(rootNode: HTMLElement): string {
-    // fileContents = fileContents.replaceAll('::: {.note}', '::: info')
-    // fileContents = fileContents.replaceAll('::: {.tip}', '::: tip')
-    // fileContents = fileContents.replaceAll('::: {.warning}', '::: warning')
-    // fileContents = fileContents.replaceAll('::: {.danger}', '::: danger')
+function processRawContent(item: DocItem, rootDir: string): string {
+    const { rootNode, absPath } = item
+    if (!absPath || !rootNode) {
+        throw new Error(`Invalid item:${item.title}`)
+    }
 
-    // fileContents = fileContents.replaceAll('::: {.admonition-title}\nNote\n:::', '')
-    // fileContents = fileContents.replaceAll('::: {.admonition-title}\nTip\n:::', '')
-    // fileContents = fileContents.replaceAll('::: {.admonition-title}\nWarning\n:::', '')
-    // fileContents = fileContents.replaceAll('::: {.admonition-title}\nDanger\n:::', '')
+    for (const tabsContainer of rootNode.querySelectorAll('div.tabs')) {
+        tabsContainer.remove() // TODO
+    }
 
-    // fileContents = fileContents.replaceAll(/\s+::: {.tabs}/g, '\n::: tabs')
-    // fileContents = fileContents.replaceAll(/\s+::: {.tab}\n/g, '\n== ')
-    // fileContents = fileContents.replaceAll(/\s+:::/g, '\n:::')
+    for (const noteContainer of rootNode.querySelectorAll('div.note, div.tip div.warning div.danger')) {
+        if (noteContainer.classList.contains('note')) {
+            noteContainer.classList.remove('note')
+            noteContainer.classList.add('info')
+        }
 
-    // if (filePath.includes('submitting_to_assetlib')) {
-    //     console.log(fileContents)
-    // }
+        noteContainer.classList.add('custom-block')
+        noteContainer.querySelector('.admonition-title')?.classList.add('custom-block-title')
+    }
 
-    // TODO patch references links
-    // TODO patch img links
-    // TODO patch tables
+    const dirPath = path.dirname(absPath).replace(rootDir, '')
+    for (const img of rootNode.querySelectorAll('img')) {
+        const imgRelPath = img.getAttribute('src')
+        if (!imgRelPath) {
+            continue
+        }
+
+        const imgPath = path.join(dirPath, imgRelPath)
+        const imgAlt = img.getAttribute('alt') ?? ''
+        const replacement = `\n\n![${imgAlt}](${imgPath})\n\n`
+
+        img.replaceWith(replacement)
+    }
+
+    for (const codeTag of rootNode.querySelectorAll('span.title-ref')) {
+        codeTag.tagName = 'CODE'
+    }
+
     return rootNode.toString()
 }
