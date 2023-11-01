@@ -1,0 +1,20 @@
+diff --git a/node_modules/vitepress/types/default-theme.d.ts b/node_modules/vitepress/types/default-theme.d.ts
+index 94dfb95..c1f04f3 100644
+--- a/node_modules/vitepress/types/default-theme.d.ts
++++ b/node_modules/vitepress/types/default-theme.d.ts
+@@ -165,14 +165,9 @@ export namespace DefaultTheme {
+     rel?: string
+   }
+ 
+-  export interface NavItemChildren {
+-    text?: string
+-    items: NavItemWithLink[]
+-  }
+-
+   export interface NavItemWithChildren {
+     text?: string
+-    items: (NavItemChildren | NavItemWithLink)[]
++    items: NavItem[]
+ 
+     /**
+      * `activeMatch` is expected to be a regex string. We can't use actual

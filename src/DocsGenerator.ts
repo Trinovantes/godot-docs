@@ -1,7 +1,5 @@
 import path from 'node:path'
 import fs from 'node:fs'
-import { execSync } from 'node:child_process'
-import { parse, HTMLElement, NodeType } from 'node-html-parser'
 import { DefaultTheme } from 'vitepress'
 import { VitePressRoute } from './VitePressRoute'
 import assert from 'node:assert'
@@ -15,7 +13,8 @@ type DocItem = {
     title: string
     urlPath: string | null
     absPath: string | null
-    rootNode: HTMLElement | null
+    origContents: string | null
+    // rootNode: HTMLElement | null
     lastUpdated: number | null
     children?: Array<DocItem>
 }
@@ -33,26 +32,26 @@ export class DocsGenerator {
                 dir: 'about',
                 label: 'About',
             },
-            // {
-            //     dir: 'getting_started',
-            //     label: 'Getting Started',
-            // },
-            // {
-            //     dir: 'contributing',
-            //     label: 'Contributing',
-            // },
+            {
+                dir: 'getting_started',
+                label: 'Getting Started',
+            },
+            {
+                dir: 'contributing',
+                label: 'Contributing',
+            },
             {
                 dir: 'community',
                 label: 'Community',
             },
-            // {
-            //     dir: 'tutorials',
-            //     label: 'Tutorials',
-            // },
-            // {
-            //     dir: 'classes',
-            //     label: 'API Reference',
-            // },
+            {
+                dir: 'tutorials',
+                label: 'Tutorials',
+            },
+            {
+                dir: 'classes',
+                label: 'API Reference',
+            },
         ]
 
         for (const navGroup of this.navGroups) {
@@ -87,7 +86,8 @@ export class DocsGenerator {
                         title: getDisplayName(entry.name),
                         urlPath: null,
                         absPath: null,
-                        rootNode: null,
+                        origContents: null,
+                        // rootNode: null,
                         lastUpdated: null,
                         children,
                     })
@@ -102,13 +102,13 @@ export class DocsGenerator {
                     this.docRefs.set(ref, urlPath)
                 }
 
-                const html = execSync(`pandoc --from=rst --to=html ${absPath}`).toString('utf-8')
-                const rootNode = parse(html)
-                if (shouldIgnoreDoc(rootNode)) {
-                    continue
-                }
+                // const html = execSync(`pandoc --from=rst --to=html ${absPath}`).toString('utf-8')
+                // const rootNode = parse(html)
+                // if (shouldIgnoreDoc(rootNode)) {
+                //     continue
+                // }
 
-                const title = /([\w\-@+ ().#\\?']+)\s*({#[\w\-.@]+})?\n[=-]+/m.exec(rst)?.[1]?.trim()
+                const title = /([\w\-@+ ().#\\/?']+)\s*({#[\w\-.@]+})?\n[=-]+/m.exec(rst)?.[1]?.trim()
                 if (!title) {
                     throw new Error(`Failed to parse title for ${absPath}`)
                 }
@@ -117,8 +117,9 @@ export class DocsGenerator {
                     title,
                     urlPath,
                     absPath,
+                    origContents: rst,
                     lastUpdated,
-                    rootNode,
+                    // rootNode,
                 })
             }
         }
@@ -152,6 +153,7 @@ export class DocsGenerator {
             return {
                 text: label,
                 items: getNavItems(navGroupItems),
+                activeMatch: `/${dir}/`,
             }
         })
     }
@@ -168,6 +170,9 @@ export class DocsGenerator {
                     link: item.urlPath ?? undefined,
                     items: children.length > 0
                         ? children
+                        : undefined,
+                    collapsed: children.length > 0
+                        ? true
                         : undefined,
                 })
             }
@@ -189,14 +194,14 @@ export class DocsGenerator {
         const routes = new Array<VitePressRoute>()
         const findRoutes = (docItems: Array<DocItem>): void => {
             for (const item of docItems) {
-                if (item.urlPath) {
+                if (item.urlPath && item.origContents) {
                     routes.push({
                         params: {
                             urlPath: item.urlPath.replace(new RegExp(`^/${dir}/`), '/'),
                             title: item.title,
                             lastUpdated: item.lastUpdated ?? undefined,
                         },
-                        content: this.#processRawContent(item),
+                        content: item.origContents,
                     })
                 }
 
@@ -209,97 +214,97 @@ export class DocsGenerator {
         return routes
     }
 
-    #processRawContent(item: DocItem): string {
-        const { rootNode, absPath } = item
-        if (!absPath || !rootNode) {
-            throw new Error(`Invalid item:${item.title}`)
-        }
+    // #processRawContent(item: DocItem): string {
+    //     const { rootNode, absPath } = item
+    //     if (!absPath || !rootNode) {
+    //         throw new Error(`Invalid item:${item.title}`)
+    //     }
 
-        // Convert tabbed content
-        for (const $tabsContainer of rootNode.querySelectorAll('div.tabs')) {
-            for (const $tab of $tabsContainer.querySelectorAll('> div.tab')) {
-                const $label = $tab.querySelector('> p:first-child')
-                const labelText = $label?.text
-                if (!labelText) {
-                    throw new Error('Failed to get label text')
-                }
+    //     // Convert tabbed content
+    //     for (const $tabsContainer of rootNode.querySelectorAll('div.tabs')) {
+    //         for (const $tab of $tabsContainer.querySelectorAll('> div.tab')) {
+    //             const $label = $tab.querySelector('> p:first-child')
+    //             const labelText = $label?.text
+    //             if (!labelText) {
+    //                 throw new Error('Failed to get label text')
+    //             }
 
-                $label?.remove()
-                const replacement = `\n\n== ${labelText}\n${$tab.innerHTML}\n\n`
-                $tab.replaceWith(replacement)
-            }
+    //             $label?.remove()
+    //             const replacement = `\n\n== ${labelText}\n${$tab.innerHTML}\n\n`
+    //             $tab.replaceWith(replacement)
+    //         }
 
-            // TODO shared key?
-            const replacement = `\n\n::: tabs\n${$tabsContainer.innerHTML}\n:::\n\n`
-            $tabsContainer.replaceWith(replacement)
-        }
+    //         // TODO shared key?
+    //         const replacement = `\n\n::: tabs\n${$tabsContainer.innerHTML}\n:::\n\n`
+    //         $tabsContainer.replaceWith(replacement)
+    //     }
 
-        // Convert code blocks
-        for (const $pre of rootNode.querySelectorAll('> pre')) {
-            const syntaxLanguage = $pre.classNames.replace('sourceCode', '').trim()
-            const code = $pre.innerHTML
-                .replace(/^(<code>)/, '')
-                .replace(/(<\/code>)$/, '')
-                .replaceAll('&quot;', '"')
+    //     // Convert code blocks
+    //     for (const $pre of rootNode.querySelectorAll('> pre')) {
+    //         const syntaxLanguage = $pre.classNames.replace('sourceCode', '').trim()
+    //         const code = $pre.innerHTML
+    //             .replace(/^(<code>)/, '')
+    //             .replace(/(<\/code>)$/, '')
+    //             .replaceAll('&quot;', '"')
 
-            const replacement = `\n\n\`\`\`${syntaxLanguage}\n${code}\n\`\`\`\n\n`
-            $pre.replaceWith(replacement)
-        }
+    //         const replacement = `\n\n\`\`\`${syntaxLanguage}\n${code}\n\`\`\`\n\n`
+    //         $pre.replaceWith(replacement)
+    //     }
 
-        // Convert containers into vitepress equivalent
-        for (const $noteContainer of rootNode.querySelectorAll('div.note, div.tip, div.warning, div.danger')) {
-            $noteContainer.querySelector('.admonition-title')?.remove()
+    //     // Convert containers into vitepress equivalent
+    //     for (const $noteContainer of rootNode.querySelectorAll('div.note, div.tip, div.warning, div.danger')) {
+    //         $noteContainer.querySelector('.admonition-title')?.remove()
 
-            const level = getNoteLevel($noteContainer)
-            const replacement = `\n\n::: ${level}\n${$noteContainer.innerHTML}\n:::\n\n`
-            $noteContainer.replaceWith(replacement)
-        }
+    //         const level = getNoteLevel($noteContainer)
+    //         const replacement = `\n\n::: ${level}\n${$noteContainer.innerHTML}\n:::\n\n`
+    //         $noteContainer.replaceWith(replacement)
+    //     }
 
-        // Convert reference links
-        for (const $link of rootNode.querySelectorAll('code.interpreted-text[data-role="ref"]')) {
-            const ref = $link.text.trim()
-            const destUrl = this.docRefs.get(ref)
-            if (!destUrl) {
-                // console.warn(`Cannot find ref:${ref}`)
-                continue
-            }
+    //     // Convert reference links
+    //     for (const $link of rootNode.querySelectorAll('code.interpreted-text[data-role="ref"]')) {
+    //         const ref = $link.text.trim()
+    //         const destUrl = this.docRefs.get(ref)
+    //         if (!destUrl) {
+    //             // console.warn(`Cannot find ref:${ref}`)
+    //             continue
+    //         }
 
-            const replacement = `<a href="${destUrl}">text</a>`
-            $link.replaceWith(replacement)
-        }
+    //         const replacement = `<a href="${destUrl}">text</a>`
+    //         $link.replaceWith(replacement)
+    //     }
 
-        // Delete autogenerated table colgroups
-        for (const $colgroup of rootNode.querySelectorAll('table > colgroup')) {
-            $colgroup.remove()
-        }
+    //     // Delete autogenerated table colgroups
+    //     for (const $colgroup of rootNode.querySelectorAll('table > colgroup')) {
+    //         $colgroup.remove()
+    //     }
 
-        // Fix image links
-        // Every image link is relative to original rst file
-        // This converts those links to point to ./src/routes/public/:rstPath:/:imgPath (need to run copyImages script first)
-        const dirPath = path.dirname(absPath).replace(this.rootDir, '')
-        for (const $img of rootNode.querySelectorAll('img')) {
-            const imgRelPath = $img.getAttribute('src')
-            if (!imgRelPath) {
-                continue
-            }
+    //     // Fix image links
+    //     // Every image link is relative to original rst file
+    //     // This converts those links to point to ./src/routes/public/:rstPath:/:imgPath (need to run copyImages script first)
+    //     const dirPath = path.dirname(absPath).replace(this.rootDir, '')
+    //     for (const $img of rootNode.querySelectorAll('img')) {
+    //         const imgRelPath = $img.getAttribute('src')
+    //         if (!imgRelPath) {
+    //             continue
+    //         }
 
-            const imgPath = path.join(dirPath, imgRelPath)
-            $img.setAttribute('src', imgPath)
-        }
+    //         const imgPath = path.join(dirPath, imgRelPath)
+    //         $img.setAttribute('src', imgPath)
+    //     }
 
-        // Fix inline code ticks
-        // For some reason, pandoc converts `TEXT` into <span class="title-ref">TEXT</span>
-        for (const $code of rootNode.querySelectorAll('span.title-ref')) {
-            $code.tagName = 'CODE'
-        }
+    //     // Fix inline code ticks
+    //     // For some reason, pandoc converts `TEXT` into <span class="title-ref">TEXT</span>
+    //     for (const $code of rootNode.querySelectorAll('span.title-ref')) {
+    //         $code.tagName = 'CODE'
+    //     }
 
-        // Fix <embed> being generated instead of <img> for webp
-        for (const $embed of rootNode.querySelectorAll('embed[src$=".webp"]')) {
-            $embed.tagName = 'IMG'
-        }
+    //     // Fix <embed> being generated instead of <img> for webp
+    //     for (const $embed of rootNode.querySelectorAll('embed[src$=".webp"]')) {
+    //         $embed.tagName = 'IMG'
+    //     }
 
-        return rootNode.toString()
-    }
+    //     return rootNode.toString()
+    // }
 }
 
 export const generator = new DocsGenerator('./docs')
@@ -329,47 +334,47 @@ function getDisplayName(name: string): string {
     return name
 }
 
-function shouldIgnoreDoc(rootNode: HTMLElement): boolean {
-    const children = rootNode.querySelectorAll('> *')
+// function shouldIgnoreDoc(rootNode: HTMLElement): boolean {
+//     const children = rootNode.querySelectorAll('> *')
 
-    if (children.length !== 2) {
-        return false
-    }
+//     if (children.length !== 2) {
+//         return false
+//     }
 
-    const first = children[0]
-    if (!(first instanceof HTMLElement)) {
-        return false
-    }
-    if (first.tagName !== 'H1') {
-        return false
-    }
+//     const first = children[0]
+//     if (!(first instanceof HTMLElement)) {
+//         return false
+//     }
+//     if (first.tagName !== 'H1') {
+//         return false
+//     }
 
-    const second = children[1]
-    if (!(second instanceof HTMLElement)) {
-        return false
-    }
-    if (second.tagName !== 'DIV') {
-        return false
-    }
-    if (!second.classList.contains('toctree')) {
-        return false
-    }
+//     const second = children[1]
+//     if (!(second instanceof HTMLElement)) {
+//         return false
+//     }
+//     if (second.tagName !== 'DIV') {
+//         return false
+//     }
+//     if (!second.classList.contains('toctree')) {
+//         return false
+//     }
 
-    return true
-}
+//     return true
+// }
 
-function getNoteLevel(noteContainer: HTMLElement): string {
-    switch (true) {
-        case noteContainer.classList.contains('tip'):
-            return 'tip'
+// function getNoteLevel(noteContainer: HTMLElement): string {
+//     switch (true) {
+//         case noteContainer.classList.contains('tip'):
+//             return 'tip'
 
-        case noteContainer.classList.contains('warning'):
-            return 'warning'
+//         case noteContainer.classList.contains('warning'):
+//             return 'warning'
 
-        case noteContainer.classList.contains('danger'):
-            return 'danger'
+//         case noteContainer.classList.contains('danger'):
+//             return 'danger'
 
-        default:
-            return 'info'
-    }
-}
+//         default:
+//             return 'info'
+//     }
+// }
