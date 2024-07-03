@@ -10,6 +10,13 @@ export function getVitepressSidebars(docCache: DocCache): DefaultTheme.SidebarMu
     const root = docCache.loadDoc(compiler, 'index')
     const tocTrees = root.findAllChildren(RstNodeType.Directive).filter((node) => node.directive === 'toctree')
     const sidebar: Record<string, Array<DefaultTheme.SidebarItem>> = {}
+    const addSidebar = (prefix: string, sidebarItems: Array<DefaultTheme.SidebarItem>) => {
+        if (!prefix.includes('/')) {
+            prefix += '/'
+        }
+
+        sidebar[prefix] = sidebarItems
+    }
 
     for (const tocTree of tocTrees) {
         const subIndexFiles = tocTree.rawBodyText
@@ -19,25 +26,24 @@ export function getVitepressSidebars(docCache: DocCache): DefaultTheme.SidebarMu
         if (subIndexFiles.length === 0) {
             const sidebarItems = convertTocTreeToSidebarItems(docCache, compiler, tocTree, '')
             const prefix = getCommonPathPrefix(sidebarItems.map((item) => item.link ?? ''))
-            sidebar[prefix] = sidebarItems
+            addSidebar(prefix, sidebarItems)
         } else {
             for (const rawPath of subIndexFiles) {
                 if (rawPath.endsWith('/index')) {
-                    const basePath = path.dirname(rawPath)
-                    const prefix = basePath === '.' ? '/' : basePath
-                    sidebar[prefix] = convertIndexPageToSidebarItems(docCache, compiler, rawPath)
+                    const prefix =  path.dirname(rawPath)
+                    const sidebarItems = convertIndexPageToSidebarItems(docCache, compiler, rawPath)
+                    addSidebar(prefix, sidebarItems)
                 } else {
-                    // Not an index page so we just give it a sidebar with single item
-                    // const root = docCache.loadDoc(compiler, rawPath)
-                    // const title = root.findFirstChild(RstNodeType.Section)?.textContent ?? rawPath
-                    sidebar[rawPath] = []
+                    // Not an index page so we do not give it a sidebar
+                    addSidebar(rawPath, [])
                 }
             }
         }
     }
 
     // Fallback last so it has lowest match priority
-    sidebar['/'] = convertIndexPageToSidebarItems(docCache, compiler, 'index', 0, 1)
+    const rootSidebarItems = convertIndexPageToSidebarItems(docCache, compiler, 'index', 0, 1)
+    addSidebar('/', rootSidebarItems)
 
     return sidebar
 }

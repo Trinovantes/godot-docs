@@ -4,7 +4,7 @@ import { RstGeneratorInput, RstNodeJson, RstToMdCompiler } from './rstCompiler.j
 import { ParserWorker, ParserWorkerResponse, ParserWorkerResponseType } from './ParserWorker/ParserWorker'
 import { DocCache } from './DocCache.js'
 import { createHighlighter } from 'shiki'
-import { BASE_PATH, NUM_THREADS, MARKDOWN_DIR, RST_DIR } from './Constants.js'
+import { NUM_THREADS, MARKDOWN_DIR, RST_DIR } from './Constants.js'
 
 // ----------------------------------------------------------------------------
 // MARK: Constants
@@ -215,7 +215,7 @@ async function generateDocs(parsedDocs: ReadonlyMap<string, RstNodeJson>) {
 
         const mdDestPath = path.join(MARKDOWN_DIR, filePath.replace(/\.rst$/, '.md'))
         const generatorOutput = compiler.generate({
-            basePath: BASE_PATH,
+            basePath: '/', // Don't use basePath here since any paths in Markdown will get fed to VitePress and get prepended with another basePath
             currentDocPath: filePath,
             docs,
         }, {
@@ -232,8 +232,8 @@ async function generateDocs(parsedDocs: ReadonlyMap<string, RstNodeJson>) {
         fs.writeFileSync(mdDestPath, `${generatorOutput.header}\n\n${postProcessBody(generatorOutput.body)}`)
 
         for (const download of generatorOutput.downloads) {
-            const downloadSrc = path.join(RST_DIR, download.srcPath.substring(BASE_PATH.length))
-            const downloadDest = path.join(MARKDOWN_DIR, download.destPath.substring(BASE_PATH.length))
+            const downloadSrc = path.join(RST_DIR, download.srcPath)
+            const downloadDest = path.join(MARKDOWN_DIR, download.destPath)
             copyFileIfNotExists(downloadSrc, downloadDest)
         }
 
