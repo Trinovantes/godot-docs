@@ -15,7 +15,7 @@ You will need the [Bun.js](https://bun.sh/) runtime before running the `compile`
 git clone --recurse-submodules --shallow-submodules git@github.com:Trinovantes/godot-docs.git
 
 # Compiles the original reStructuredText documentation into markdown
-# This may take up to 15 minutes on a 12-core CPU
+# This may take up to 3 minutes on a 12-core CPU
 yarn compile
 
 # Starts dev server at localhost:8080
