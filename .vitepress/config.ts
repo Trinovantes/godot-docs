@@ -8,6 +8,7 @@ import fg from 'fast-glob'
 import fs from 'node:fs'
 import path from 'node:path'
 import { BASE_PATH, MARKDOWN_DIR } from '../src/Constants'
+import { pagefindPlugin } from 'vitepress-plugin-pagefind'
 
 const docCache = new DocCache()
 const themeNav = getVitepressNavgroups(docCache)
@@ -27,6 +28,12 @@ export default defineConfig({
             md.use(tabsMarkdownPlugin)
             md.use(implicitFigures)
         },
+    },
+
+    vite: {
+        plugins: [
+            pagefindPlugin(),
+        ],
     },
 
     themeConfig: {
