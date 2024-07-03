@@ -4,7 +4,7 @@ import { RstGeneratorInput, RstNodeJson, RstToMdCompiler } from './rstCompiler.j
 import { ParserWorker, ParserWorkerResponse, ParserWorkerResponseType } from './ParserWorker/ParserWorker'
 import { DocCache } from './DocCache.js'
 import { createHighlighter } from 'shiki'
-import { NUM_THREADS, MARKDOWN_DIR, RST_DIR } from './Constants.js'
+import { NUM_THREADS, MARKDOWN_DIR, RST_DIR, BASE_PATH } from './Constants.js'
 
 // ----------------------------------------------------------------------------
 // MARK: Constants
@@ -330,6 +330,9 @@ function padNum(num: number, maxVal: number, padStr = ' '): string {
 }
 
 function postProcessBody(body: string): string {
+    // VitePress does not modify links inside html tags so we need to modify it manually
+    body = body.replaceAll(/<a href="\/(.+)"/gm, `<a href="${BASE_PATH}$1"`)
+
     // All assets must use relative/absolute paths in VitePress
     // VitePress converts relative image urls if the image tags are originally in markdown (html tags are left as-is)
     // Thus we need to search for any img tags that are not already relative/absolute and converts them to relative paths
