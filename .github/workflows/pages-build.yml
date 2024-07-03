@@ -1,0 +1,81 @@
+name: Deploy Pages
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - README.md
+      - .vscode
+      - .editorconfig
+      - .gitignore
+
+permissions:
+  contents: read # Allow workflow to checkout repo
+  pages: write # Allow workflow to create github-pages
+  id-token: write # Allow actions/deploy-pages to request permission
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy-pages:
+    name: Deploy Pages
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          registry-url: https://registry.npmjs.org
+          cache: yarn
+
+      - name: Set up bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run linter
+        run: yarn lint
+
+      - name: Get docs submodule hash
+        run: |
+          echo "docs_hash=\"$(git rev-parse HEAD:docs)\"" >> "$GITHUB_ENV"
+
+      - name: Cache parsed-docs
+        uses: actions/cache@v4
+        with:
+          path: ./src/.cache.json
+          key: parsed-docs-${{ env.docs_hash }}
+
+      - name: Compile rst to md
+        run: yarn compile
+
+      - name: Build
+        run: yarn build
+
+      - name: Set up github-pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifacts
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .vitepress/dist
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

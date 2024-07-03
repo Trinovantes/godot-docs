@@ -1,0 +1,126 @@
+$padding: 16px;
+
+// ----------------------------------------------------------------------------
+// MARK: General
+// ----------------------------------------------------------------------------
+
+.vp-doc{
+    td,
+    li{
+        & > p{
+            margin: 0;
+        }
+    }
+}
+
+.literal{
+    font-family: monospace;
+    background-color: var(--vp-code-bg);
+}
+
+code{
+    white-space: pre;
+}
+
+p img{
+    display: inline;
+    object-fit: none;
+    object-position: center;
+    vertical-align: middle;
+}
+
+figure:has(img){
+    background-color: var(--vp-code-block-bg);
+    border: 1px solid var(--vp-c-divider);
+    display: inline-block;
+    padding: 1rem;
+}
+
+div.literal-block{
+    background-color: var(--vp-code-block-bg);
+    border: 1px solid var(--vp-c-divider);
+    padding: 1rem;
+
+    pre{
+        background: none !important;
+    }
+
+    &.code-example-good{
+        border-left: 10px solid rgba(green, 0.5);
+    }
+
+    &.code-example-bad{
+        border-left: 10px solid rgba(red, 0.5);
+    }
+}
+
+// ----------------------------------------------------------------------------
+// MARK: Class Reference
+// ----------------------------------------------------------------------------
+
+hr:not(.classref-item-separator){
+    display: none;
+}
+
+p[class^=classref]{
+    font-family: monospace;
+
+    &.classref-property,
+    &.classref-themeproperty{
+        background-color: rgba(aqua, 0.1);
+    }
+
+    &.classref-enumeration{
+        background-color: rgba(limegreen, 0.2);
+    }
+
+    &.classref-enumeration-constant{
+        background-color: rgba(greenyellow, 0.1);
+    }
+
+    &.classref-method,
+    &.classref-signal{
+        background-color: rgba(chocolate, 0.2);
+    }
+}
+
+ul.classref-property-setget{
+    background-color: rgba(chocolate, 0.1);
+    font-family: monospace;
+    list-style: none;
+    padding-left: $padding * 2;
+}
+
+// ----------------------------------------------------------------------------
+// MARK: JS Domain
+// /tutorials/platform/web/html5_shell_classref.html
+// ----------------------------------------------------------------------------
+
+dl.js{
+    margin-bottom: 2rem;
+
+    &.attribute{
+        dt:has(code){
+            background-color: rgba(aqua, 0.1);
+        }
+    }
+
+    &.function{
+        dt:has(code){
+            background-color: rgba(chocolate, 0.2);
+        }
+    }
+
+    dl:not(.js){
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 1rem;
+
+        dt{
+            font-weight: bold;
+        }
+        dd{
+            margin: 0;
+        }
+    }
+}

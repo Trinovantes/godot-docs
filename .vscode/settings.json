@@ -1,0 +1,7 @@
+{
+    "files.exclude": {
+        "src/.cache.json": true,
+        "src/routes": true,
+        ".vitepress/cache": true
+    }
+}
