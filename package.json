@@ -4,7 +4,7 @@
     "scripts": {
         "clean": "rm -f ./src/.cache.json ./src/vitepress-*.json",
         "compile": "bun run ./src/compileRst.ts",
-        "generate": "bun run ./src/generateVitepressConfig.ts",
+        "debug": "bun run ./src/debugVitepressConfig.ts",
         "lint": "vue-tsc --noEmit && eslint --ignore-pattern \"docs/*\"",
         "dev": "vitepress dev --port 8080",
         "build": "node --max-old-space-size=8192 --stack-size=1024 ./node_modules/.bin/vitepress build",
