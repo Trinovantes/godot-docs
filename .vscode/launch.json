@@ -7,7 +7,7 @@
         {
             "type": "bun",
             "request": "launch",
-            "name": "Generate Vitepress Config",
+            "name": "Generate VitePress Config",
             "program": "${workspaceFolder}/src/debugVitepressConfig.ts",
 
             "runtime": "bun",

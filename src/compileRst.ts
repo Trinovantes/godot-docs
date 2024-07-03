@@ -330,8 +330,8 @@ function padNum(num: number, maxVal: number, padStr = ' '): string {
 }
 
 function postProcessBody(body: string): string {
-    // All assets must use relative/absolute paths in Vitepress
-    // Vitepress converts relative image urls if the image tags are originally in markdown (html tags are left as-is)
+    // All assets must use relative/absolute paths in VitePress
+    // VitePress converts relative image urls if the image tags are originally in markdown (html tags are left as-is)
     // Thus we need to search for any img tags that are not already relative/absolute and converts them to relative paths
     body = body.replaceAll(new RegExp(assetHtmlTagRe, 'gm'), 'img src="./$1"')
 
