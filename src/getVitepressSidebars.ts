@@ -87,10 +87,13 @@ function convertIndexPageToSidebarItems(docCache: DocCache, compiler: RstCompile
 
     const basePath = path.dirname(filePath)
     const root = docCache.loadDoc(compiler, filePath)
+    const rootLabel = root.findFirstChild(RstNodeType.Section)?.textContent
     const tocTrees = root.findAllChildren(RstNodeType.Directive).filter((node) => node.directive === 'toctree')
 
     return tocTrees.map((tocTree) => ({
-        text: getTocTreeLabel(tocTree),
+        text: tocTrees.length > 1
+            ? getTocTreeLabel(tocTree)
+            : rootLabel ?? getTocTreeLabel(tocTree),
         base: '/',
         link: filePath,
         items: convertTocTreeToSidebarItems(docCache, compiler, tocTree, basePath, depth + 1, maxDepth),
