@@ -21,24 +21,6 @@ const assetExts = [
     'ogg',
 ].join('|')
 
-const assetHtmlTagRe = new RegExp(
-    '<(?:img|source) src=' + // <img> or <source>
-    '"' +
-        '(?!' + // Negative lookbehind to exclude valid urls
-            [
-                '\\.[/\\\\]', // Relative path
-                '[/\\\\]', // Absolute path
-                'https:\\/\\/', // Url
-            ].join('|') +
-        ')' +
-        '(' + // Start capture group
-            '.+' + // Any char
-            '\\.' + // Dot
-            `(?:${assetExts})` + // Valid extensions
-        ')' + // End capture group
-    '"',
-)
-
 const isAsset = (fileName: string) => new RegExp(`\\.(${assetExts})$`).test(fileName)
 const isRst = (fileName: string) => /\.(rst)$/.test(fileName)
 
@@ -336,7 +318,25 @@ function postProcessBody(body: string): string {
     // All assets must use relative/absolute paths in VitePress
     // VitePress converts relative image urls if the image tags are originally in markdown (html tags are left as-is)
     // Thus we need to search for any img tags that are not already relative/absolute and converts them to relative paths
-    body = body.replaceAll(new RegExp(assetHtmlTagRe, 'gm'), 'img src="./$1"')
+    const assetHtmlTagRe = new RegExp(
+        '<(?:img|source) src=' + // <img> or <source>
+        '"' +
+            '(?!' + // Negative lookbehind to exclude valid urls
+                [
+                    '\\.[/\\\\]', // Relative path
+                    '[/\\\\]', // Absolute path
+                    'https:\\/\\/', // Url
+                ].join('|') +
+            ')' +
+            '(' + // Start capture group
+                '.+' + // Any char
+                '\\.' + // Dot
+                `(?:${assetExts})` + // Valid extensions
+            ')' + // End capture group
+        '"',
+    )
+
+    body = body.replaceAll(new RegExp(assetHtmlTagRe, 'gm'), '<img src="./$1"')
 
     return body
 }
