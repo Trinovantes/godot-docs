@@ -19,9 +19,6 @@ export default defineConfig({
     srcDir: MARKDOWN_DIR,
     base: BASE_PATH,
 
-    // TODO remove after syncing godot docs July 5
-    ignoreDeadLinks: true,
-
     markdown: {
         html: true,
         config: (md) => {
