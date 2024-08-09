@@ -58,14 +58,15 @@ div.literal-block{
 // MARK: Sidebar
 // ----------------------------------------------------------------------------
 
-.VPSidebarItem.is-active{
-    .link{
-        .text{
-            background-color: var(--vp-c-brand-1);
-            color: white !important;
-            padding-left: 8px;
-        }
-    }
+div.VPSidebarItem.is-active a.link .text{
+    background-color: var(--vp-c-brand-1);
+    color: white !important;
+    padding-left: 8px;
+}
+
+div.VPMenuLink a.link.active{
+    background-color: var(--vp-c-brand-1);
+    color: white !important;
 }
 
 // ----------------------------------------------------------------------------
