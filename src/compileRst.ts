@@ -202,10 +202,9 @@ async function generateDocs(parsedDocs: ReadonlyMap<string, RstNodeJson>) {
             docs,
         }, {
             defaultLiteralBlockLanguage: 'gdscript',
-            defaultSyntaxLanguage: 'gdscript',
+            defaultCodeDirectiveLanguage: 'gdscript',
             shiki: {
                 theme: 'github-light',
-                transformers: [],
                 highlighter,
             },
         })
