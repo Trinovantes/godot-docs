@@ -2,7 +2,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "clean": "rm -f ./src/.cache.json ./src/vitepress-*.json",
+        "clean": "rm -rf ./src/.cache.json ./src/vitepress-*.json ./.vitepress/dist",
         "compile": "bun run ./src/compileRst.ts",
         "debug": "bun run ./src/debugVitepressConfig.ts",
         "lint": "vue-tsc --noEmit && eslint --ignore-pattern \"docs/*\"",
