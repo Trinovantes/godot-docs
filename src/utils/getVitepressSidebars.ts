@@ -1,6 +1,6 @@
-import { RstCompiler, RstDirective, RstNodeType, RstToMdCompiler } from './rstCompiler.js'
+import { RstCompiler, RstDirective, RstNodeType, RstToMdCompiler } from '../rstCompiler.js'
 import { DefaultTheme } from 'vitepress'
-import { DocCache } from './DocCache.js'
+import { DocCache } from '../DocCache.js'
 import path from 'node:path'
 import { getCommonPathPrefix } from './getCommonPathPrefix.js'
 import { getTocTreeLabel } from './getTocTreeLabel.js'

@@ -1,14 +1,14 @@
 import { defineConfig } from 'vitepress'
 import { tabsMarkdownPlugin } from 'vitepress-plugin-tabs'
-import { getVitepressNavgroups } from '../src/getVitepressNavGroups'
-import { getVitepressSidebars } from '../src/getVitepressSidebars'
-import { DocCache } from '../src/DocCache'
+import { getVitepressNavgroups } from '../src/utils/getVitepressNavGroups'
+import { getVitepressSidebars } from '../src/utils/getVitepressSidebars'
+import { DocCache } from '../src/DocCache.js'
 import implicitFigures from 'markdown-it-image-figures'
 import fg from 'fast-glob'
 import fs from 'node:fs'
 import path from 'node:path'
 import { BASE_PATH, MARKDOWN_DIR } from '../src/Constants'
-import { pagefindPlugin } from 'vitepress-plugin-pagefind'
+import { createSearchPlugin } from '../src/Search/createSearchPlugin'
 
 const docCache = new DocCache()
 const themeNav = getVitepressNavgroups(docCache)
@@ -29,7 +29,7 @@ export default defineConfig({
 
     vite: {
         plugins: [
-            pagefindPlugin(),
+            createSearchPlugin(),
         ],
     },
 

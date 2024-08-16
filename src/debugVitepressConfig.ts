@@ -1,7 +1,7 @@
 import { writeFileSync } from 'node:fs'
-import { getVitepressNavgroups } from './getVitepressNavGroups'
-import { getVitepressSidebars } from './getVitepressSidebars'
-import { DocCache } from './DocCache'
+import { getVitepressNavgroups } from './utils/getVitepressNavGroups'
+import { getVitepressSidebars } from './utils/getVitepressSidebars'
+import { DocCache } from './DocCache.js'
 import path from 'node:path'
 
 const docCache = new DocCache()

@@ -5,6 +5,7 @@ import { ParserWorker, ParserWorkerResponse, ParserWorkerResponseType } from './
 import { DocCache } from './DocCache.js'
 import { createHighlighter } from 'shiki'
 import { NUM_THREADS, MARKDOWN_DIR, RST_DIR, BASE_PATH } from './Constants.js'
+import { formatProgress, padNum } from './utils/formatProgress.js'
 
 // ----------------------------------------------------------------------------
 // MARK: Constants
@@ -152,7 +153,7 @@ async function parseDocs(documents: Map<string, string>): Promise<{
                     docCache.set(filePath, rootJson)
                     setUnion(directives, globalDirectives)
                     setUnion(roles, globalRoles)
-                    console.info(`[${worker.toString()}] (${padNum(docCache.size, documents.size)} / ${documents.size}) Parsed "${filePath}" [${timeMs.toFixed(2)}ms]`)
+                    console.info(`[${worker.toString()}] (${formatProgress(docCache.size, documents.size)}}) Parsed "${filePath}" [${timeMs.toFixed(2)}ms]`)
                     break
                 }
             }
@@ -219,7 +220,7 @@ async function generateDocs(parsedDocs: ReadonlyMap<string, RstNodeJson>) {
         }
 
         const t1 = performance.now()
-        console.info(`[${padNum(idx + 1, parsedDocs.size)}/${parsedDocs.size}] Generated "${mdDestPath}" [${(t1 - t0).toFixed(2)}ms]`)
+        console.info(`[${formatProgress(idx + 1, parsedDocs.size)}] Generated "${mdDestPath}" [${(t1 - t0).toFixed(2)}ms]`)
     }
 }
 
@@ -303,11 +304,6 @@ function lowercaseSet(set: Set<string>): Set<string> {
     }
 
     return newSet
-}
-
-function padNum(num: number, maxVal: number, padStr = ' '): string {
-    const digits = Math.ceil(Math.log10(maxVal))
-    return num.toString().padStart(digits, padStr)
 }
 
 function postProcessBody(body: string): string {
