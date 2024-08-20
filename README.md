@@ -18,6 +18,9 @@ git clone --recurse-submodules --shallow-submodules git@github.com:Trinovantes/g
 # This may take up to 3 minutes on a 12-core CPU
 yarn compile
 
+# Create and upload search index to algolia
+yarn index --upload
+
 # Starts dev server at localhost:8080
 yarn dev
 
