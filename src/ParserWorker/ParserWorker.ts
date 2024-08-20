@@ -9,7 +9,7 @@ export const enum ParserWorkerResponseType {
     READY,
     TERMINATED,
     PARSE_RESULT,
-    GENERATE_RESULT,
+    PARSE_ERROR,
 }
 
 export type ParserWorkerResponse = {
@@ -18,11 +18,15 @@ export type ParserWorkerResponse = {
     type: ParserWorkerResponseType.TERMINATED
 } | {
     type: ParserWorkerResponseType.PARSE_RESULT
-    timeMs: number
     filePath: string
+    timeMs: number
     rootJson: RstNodeJson
     directives: Array<string>
     roles: Array<string>
+} | {
+    type: ParserWorkerResponseType.PARSE_ERROR
+    filePath: string
+    error: Error
 }
 
 // ----------------------------------------------------------------------------
@@ -47,7 +51,7 @@ export type ParserWorkerRequest = {
 // MARK: Worker
 // ----------------------------------------------------------------------------
 
-const WORKER_SCRIPT = path.join(__dirname, 'workerParser.ts')
+const WORKER_SCRIPT = path.join(__dirname, 'ParserWorkerScript.ts')
 
 export class ParserWorker extends Worker {
     constructor(
@@ -57,22 +61,23 @@ export class ParserWorker extends Worker {
         super(WORKER_SCRIPT)
     }
 
-    dispatchTerminate(): void {
-        this.postMessage({ type: ParserWorkerRequestType.TERMINATE } satisfies ParserWorkerRequest)
-    }
-
     dispatchJob(job?: [string, string], parserOptions?: Partial<RstParserOptions>): void {
-        if (!job) {
-            this.dispatchTerminate()
-            return
+        let msg: ParserWorkerRequest
+
+        if (job) {
+            msg = {
+                type: ParserWorkerRequestType.PARSE_JOB,
+                filePath: job[0],
+                fileContents: job[1],
+                parserOptions,
+            }
+        } else {
+            msg = {
+                type: ParserWorkerRequestType.TERMINATE,
+            }
         }
 
-        this.postMessage({
-            type: ParserWorkerRequestType.PARSE_JOB,
-            filePath: job[0],
-            fileContents: job[1],
-            parserOptions,
-        } satisfies ParserWorkerRequest)
+        this.postMessage(msg)
     }
 
     override toString(): string {

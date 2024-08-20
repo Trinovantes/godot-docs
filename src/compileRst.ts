@@ -153,7 +153,14 @@ async function parseDocs(documents: Map<string, string>): Promise<{
                     docCache.set(filePath, rootJson)
                     setUnion(directives, globalDirectives)
                     setUnion(roles, globalRoles)
-                    console.info(`[${worker.toString()}] (${formatProgress(docCache.size, documents.size)}}) Parsed "${filePath}" [${timeMs.toFixed(2)}ms]`)
+                    console.info(`[${worker.toString()}] (${formatProgress(docCache.size, documents.size)}) Parsed "${filePath}" [${timeMs.toFixed(2)}ms]`)
+                    break
+                }
+                case ParserWorkerResponseType.PARSE_ERROR: {
+                    const { error, filePath } = msg.data
+                    console.error(`[${worker.toString()}] Encountered Error while parsing "${filePath}"`)
+                    console.error(error)
+                    process.exit(1)
                     break
                 }
             }
