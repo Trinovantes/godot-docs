@@ -1854,10 +1854,10 @@ rollup@^4.13.0:
     "@rollup/rollup-win32-x64-msvc" "4.18.0"
     fsevents "~2.3.2"
 
-rst-compiler@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/rst-compiler/-/rst-compiler-0.3.0.tgz#8585f2a046a2a212b0f7647efa3339047f7eba49"
-  integrity sha512-ZGwkE4fgiB3Vr80oOEYDyqHJyLAGkWmN19y2bcpouYHDc4Ib+iS/LO0fVMinuiLXRZHZg92lzlYk9Bfqwb49Xg==
+rst-compiler@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/rst-compiler/-/rst-compiler-0.4.0.tgz#01cda65fca5b9e8106a0469bf4f5572ec56f73a6"
+  integrity sha512-iGStYSfiRQv6t9fsq4F13yGBBatziRSpVqjaHniwDf0otf7PNQIBSYm4Zegf1ggwIaPOBoplK3WWJ5xfJVoRjA==
   dependencies:
     katex "^0.16.10"
     shiki "^1.5.2"
