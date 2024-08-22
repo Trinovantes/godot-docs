@@ -56,7 +56,7 @@ function generateSearchRecords(): Array<SearchRecord> {
 
     for (const [docRstPath, rootJson] of cache.docs.entries()) {
         const htmlPath = docRstPath.replace('.rst', '.html')
-        const { root, simpleNameResolver } = compiler.parseJson(rootJson)
+        const { root, htmlAttrResolver } = compiler.parseJson(rootJson)
 
         const docHierarchy: SearchRecord['hierarchy'] = {} // Global hierarchy for current doc
         const tryCreateSearchRecord = (node: RstNode): SearchRecord | null => {
@@ -78,7 +78,7 @@ function generateSearchRecords(): Array<SearchRecord> {
             }
 
             const record: SearchRecord = {
-                objectID: `${htmlPath}#${simpleNameResolver.getSimpleName(node) as string}`,
+                objectID: `${htmlPath}#${htmlAttrResolver.getNodeHtmlId(node)}`,
                 hierarchy: structuredClone(docHierarchy),
             }
 
