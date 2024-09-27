@@ -7,9 +7,9 @@
         "index": "  bun run ./src/Search/generateSearchIndex.ts",
         "compile": "bun run ./src/compileRst.ts",
         "debug": "  bun run ./src/debugVitepressConfig.ts",
-        "dev": "    node --env-file=.env --max-old-space-size=8192 --stack-size=1024 ./node_modules/.bin/vitepress dev --port 8080",
-        "build": "  node --env-file=.env --max-old-space-size=8192 --stack-size=1024 ./node_modules/.bin/vitepress build",
-        "preview": "node --env-file=.env --max-old-space-size=8192 --stack-size=1024 ./node_modules/.bin/vitepress preview"
+        "dev": "    node --env-file=.env --max-old-space-size=16384 --stack-size=1024 ./node_modules/.bin/vitepress dev --port 8080",
+        "build": "  node --env-file=.env --max-old-space-size=16384 --stack-size=1024 ./node_modules/.bin/vitepress build",
+        "preview": "node --env-file=.env --max-old-space-size=16384 --stack-size=1024 ./node_modules/.bin/vitepress preview"
     },
     "devDependencies": {
         "@eslint/compat": "^1.1.0",
