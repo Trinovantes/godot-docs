@@ -5,12 +5,17 @@ import { DocCache } from '../DocCache.js'
 import { RstBulletList, RstEnumeratedList, RstNode, RstParagraph, RstSection, RstToHtmlCompiler } from '../rstCompiler'
 import { parseArgs } from 'node:util'
 import { formatProgress } from '@/utils/formatProgress'
+import { writeFileSync } from 'node:fs'
+import path from 'node:path'
 
 // Leave 1 KB for the other record fields
 const MAX_TEXT_LENGTH = 1024 * 9
+const OUTPUT_FILE = 'search-index.json'
 
 // ----------------------------------------------------------------------------
 // MARK: Main
+// Run with --upload to upload to algolia servers
+// Otherwise outputs index into OUTPUT_FILE
 // ----------------------------------------------------------------------------
 
 async function main() {
@@ -32,14 +37,17 @@ async function main() {
     const analysis = analyzeSearchRecords(searchRecords)
     console.table(analysis)
 
-    if (values.upload) {
-        console.info('Initializing Algolia')
-        const { index } = await initAlgolia()
+    if (!values.upload) {
+        writeFileSync(path.join(__dirname, OUTPUT_FILE), JSON.stringify(searchRecords, null, 4))
+        return
+    }
 
-        for (const [idx, record] of searchRecords.entries()) {
-            console.info(`[${formatProgress(idx + 1, searchRecords.length)}] Uploading ${record.objectID}`)
-            await index.saveObject(record)
-        }
+    console.info('Initializing Algolia')
+    const { index } = await initAlgolia()
+
+    for (const [idx, record] of searchRecords.entries()) {
+        console.info(`[${formatProgress(idx + 1, searchRecords.length)}] Uploading ${record.objectID}`)
+        await index.saveObject(record)
     }
 }
 
@@ -64,27 +72,19 @@ function generateSearchRecords(): Array<SearchRecord> {
                 return null
             }
 
-            if (node instanceof RstSection) {
-                assertSectionLevel(node.level)
+            // Update global hierarchy
+            assertSectionLevel(node.level)
+            docHierarchy[`lvl${node.level}`] = node.textContent
 
-                // Update global hierarchy
-                docHierarchy[`lvl${node.level}`] = node.textContent
-
-                // Clear global hierachy of any headings beyond node.level
-                for (let i = node.level + 1; i <= 6; i++) {
-                    assertSectionLevel(i)
-                    delete docHierarchy[`lvl${i}`]
-                }
+            // Clear global hierachy of any headings beyond node.level
+            for (let i = node.level + 1; i <= 6; i++) {
+                assertSectionLevel(i)
+                delete docHierarchy[`lvl${i}`]
             }
 
             const record: SearchRecord = {
                 objectID: `${htmlPath}#${htmlAttrResolver.getNodeHtmlId(node)}`,
                 hierarchy: structuredClone(docHierarchy),
-            }
-
-            const siblingText = getSiblingText(node)
-            if (siblingText) {
-                record.hierarchy.text = siblingText
             }
 
             return record
@@ -107,7 +107,7 @@ function generateSearchRecords(): Array<SearchRecord> {
     return searchRecords
 }
 
-function getSiblingText(node: RstNode): string {
+export function getSiblingText(node: RstNode): string {
     const myIdx = node.getMyIndexInParent()
     if (myIdx === null || !node.parent) {
         return ''
@@ -144,8 +144,8 @@ function assertSectionLevel(n: number): asserts n is 1 | 2 | 3 | 4 | 5 | 6 {
     assert(n >= 1 && n <= 6)
 }
 
-function isNodeStartOfNewRecord(node: RstNode): boolean {
-    return node instanceof RstSection
+function isNodeStartOfNewRecord(node: RstNode): node is RstSection {
+    return node instanceof RstSection && node.level < 2
 }
 
 function isNodeTextIndexable(node: RstNode): boolean {
