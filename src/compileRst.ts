@@ -315,7 +315,7 @@ function lowercaseSet(set: Set<string>): Set<string> {
 
 function postProcessBody(body: string): string {
     // VitePress does not modify links inside html tags so we need to modify it manually
-    body = body.replaceAll(/<a href="\/(.+)"/gm, `<a href="${BASE_PATH}$1"`)
+    body = body.replaceAll(/<a href="\/(.+?)"/gm, `<a href="${BASE_PATH}$1"`)
 
     // All assets must use relative/absolute paths in VitePress
     // VitePress converts relative image urls if the image tags are originally in markdown (html tags are left as-is)
@@ -331,7 +331,7 @@ function postProcessBody(body: string): string {
                 ].join('|') +
             ')' +
             '(' + // Start capture group
-                '.+' + // Any char
+                '.+?' + // Any char
                 '\\.' + // Dot
                 `(?:${assetExts})` + // Valid extensions
             ')' + // End capture group
