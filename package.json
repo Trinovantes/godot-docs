@@ -3,7 +3,7 @@
     "type": "module",
     "scripts": {
         "clean": "rm -rf ./src/.cache.json ./src/vitepress-*.json ./.vitepress/dist",
-        "lint": "vue-tsc --noEmit && eslint --ignore-pattern \"docs/*\"",
+        "lint": "vue-tsc --noemit && eslint --ignore-pattern \"docs/*\"",
         "index": "  bun run ./src/Search/generateSearchIndex.ts",
         "compile": "bun run ./src/compileRst.ts",
         "debug": "  bun run ./src/debugVitepressConfig.ts",
