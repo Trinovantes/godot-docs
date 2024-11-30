@@ -3,7 +3,8 @@ import { onKeyStroke, useScrollLock, debouncedWatch } from '@vueuse/core'
 import { inBrowser, useData, useRouter } from 'vitepress'
 import { nextTick, onMounted, ref, shallowRef, watch, Ref } from 'vue'
 import { SearchRecord, SearchRecordHit } from './SearchRecord'
-import algoliasearch from 'algoliasearch'
+import { algoliasearch } from 'algoliasearch'
+import { ALGOLIA_APP_ID, ALGOLIA_SEARCH_API_KEY } from '../Constants'
 
 const props = defineProps<{
     isOpen: boolean
@@ -52,9 +53,7 @@ onMounted(() => {
 // MARK: Search Results
 // ----------------------------------------------------------------------------
 
-const client = algoliasearch('AF7QW3H7VS', '92ba993c8ad6a6310c7f468ea46a82a7')
-const index = client.initIndex('godot-docs')
-
+const algoliaClient = algoliasearch(ALGOLIA_APP_ID, ALGOLIA_SEARCH_API_KEY)
 const searchQuery = ref('')
 const searchResults: Ref<Array<SearchRecordHit>> = shallowRef([])
 debouncedWatch(searchQuery, async(newSearchQuery) => {
@@ -63,10 +62,14 @@ debouncedWatch(searchQuery, async(newSearchQuery) => {
         return
     }
 
-    const results = await index.search<SearchRecordHit>(newSearchQuery, {
-        hitsPerPage: 8,
-        highlightPreTag: '<mark>',
-        highlightPostTag: '</mark>',
+    const results = await algoliaClient.searchSingleIndex<SearchRecordHit>({
+        indexName: 'godot-docs',
+        searchParams: {
+            query: newSearchQuery,
+            hitsPerPage: 8,
+            highlightPreTag: '<mark>',
+            highlightPostTag: '</mark>',
+        },
     })
 
     searchResults.value = results.hits

@@ -4,12 +4,20 @@ import { RstGeneratorInput, RstNodeJson, RstToMdCompiler } from './rstCompiler.j
 import { ParserWorker, ParserWorkerResponse, ParserWorkerResponseType } from './ParserWorker/ParserWorker'
 import { DocCache } from './DocCache.js'
 import { createHighlighter } from 'shiki'
-import { NUM_THREADS, MARKDOWN_DIR, RST_DIR, BASE_PATH } from './Constants.js'
 import { formatProgress, padNum } from './utils/formatProgress.js'
+import os from 'node:os'
+import { BASE_PATH, MARKDOWN_DIR, RST_DIR } from './Constants.js'
 
 // ----------------------------------------------------------------------------
 // MARK: Constants
 // ----------------------------------------------------------------------------
+
+const RST_DIR_ABS = path.resolve(RST_DIR)
+const MARKDOWN_DIR_ABS = path.resolve(MARKDOWN_DIR)
+
+const NUM_THREADS = process.env.CI
+    ? 4 // GitHub actions have 4 threads
+    : os.cpus().length - 1 // Leave 1 thread for main process
 
 const assetExts = [
     'png',
@@ -66,7 +74,7 @@ function processDocs(): Map<string, string> {
 
         for (const entry of entries) {
             const fileAbsPath = path.resolve(srcDir, entry.name)
-            const fileRelPath = path.relative(RST_DIR, fileAbsPath)
+            const fileRelPath = path.relative(RST_DIR_ABS, fileAbsPath)
 
             switch (true) {
                 case entry.isDirectory(): {
@@ -75,7 +83,7 @@ function processDocs(): Map<string, string> {
                 }
 
                 case isAsset(entry.name): {
-                    const destPath = path.join(MARKDOWN_DIR, fileRelPath)
+                    const destPath = path.join(MARKDOWN_DIR_ABS, fileRelPath)
                     copyFileIfNotExists(fileAbsPath, destPath)
                     break
                 }
@@ -89,7 +97,7 @@ function processDocs(): Map<string, string> {
         }
     }
 
-    processDocsInDir(RST_DIR)
+    processDocsInDir(RST_DIR_ABS)
     return documents
 }
 
@@ -203,7 +211,7 @@ async function generateDocs(parsedDocs: ReadonlyMap<string, RstNodeJson>) {
     for (const [idx, filePath] of [...parsedDocs.keys()].entries()) {
         const t0 = performance.now()
 
-        const mdDestPath = path.join(MARKDOWN_DIR, filePath.replace(/\.rst$/, '.md'))
+        const mdDestPath = path.join(MARKDOWN_DIR_ABS, filePath.replace(/\.rst$/, '.md'))
         const generatorOutput = compiler.generate({
             basePath: '/', // Don't use basePath here since any paths in Markdown will get fed to VitePress and get prepended with another basePath
             currentDocPath: filePath,
@@ -221,8 +229,8 @@ async function generateDocs(parsedDocs: ReadonlyMap<string, RstNodeJson>) {
         fs.writeFileSync(mdDestPath, `${generatorOutput.header}\n\n${postProcessBody(generatorOutput.body)}`)
 
         for (const download of generatorOutput.downloads) {
-            const downloadSrc = path.join(RST_DIR, download.srcPath)
-            const downloadDest = path.join(MARKDOWN_DIR, download.destPath)
+            const downloadSrc = path.join(RST_DIR_ABS, download.srcPath)
+            const downloadDest = path.join(MARKDOWN_DIR_ABS, download.destPath)
             copyFileIfNotExists(downloadSrc, downloadDest)
         }
 

@@ -1,5 +1,5 @@
 import assert from 'node:assert'
-import algoliasearch from 'algoliasearch'
+import { algoliasearch } from 'algoliasearch'
 import { SearchRecord } from './SearchRecord'
 import { DocCache } from '../DocCache.js'
 import { RstBulletList, RstEnumeratedList, RstNode, RstParagraph, RstSection, RstToHtmlCompiler } from '../rstCompiler'
@@ -11,6 +11,7 @@ import path from 'node:path'
 // Leave 1 KB for the other record fields
 const MAX_TEXT_LENGTH = 1024 * 9
 const OUTPUT_FILE = 'search-index.json'
+const INDEX_NAME = 'godot-docs'
 
 // ----------------------------------------------------------------------------
 // MARK: Main
@@ -43,11 +44,14 @@ async function main() {
     }
 
     console.info('Initializing Algolia')
-    const { index } = await initAlgolia()
+    const { client } = initAlgolia()
 
     for (const [idx, record] of searchRecords.entries()) {
         console.info(`[${formatProgress(idx + 1, searchRecords.length)}] Uploading ${record.objectID}`)
-        await index.saveObject(record)
+        await client.saveObject({
+            indexName: INDEX_NAME,
+            body: record,
+        })
     }
 }
 
@@ -200,20 +204,15 @@ function analyzeSearchRecords(searchRecords: Array<SearchRecord>) {
 // MARK: Upload Index
 // ----------------------------------------------------------------------------
 
-async function initAlgolia() {
+function initAlgolia() {
     const algoliaAppId = process.env.ALGOLIA_APP_ID
     const algoliaApiKey = process.env.ALGOLIA_WRITE_API_KEY
     assert(algoliaAppId)
     assert(algoliaApiKey)
 
     const client = algoliasearch(algoliaAppId, algoliaApiKey)
-    const index = client.initIndex('godot-docs')
-
-    // Clear old index items
-    await index.clearObjects().wait()
 
     return {
         client,
-        index,
     }
 }

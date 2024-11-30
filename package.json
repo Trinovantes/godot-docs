@@ -9,14 +9,15 @@
         "debug": "  bun run ./src/debugVitepressConfig.ts",
         "dev": "    node --env-file=.env --max-old-space-size=16384 --stack-size=1024 ./node_modules/.bin/vitepress dev --port 8080",
         "build": "  node --env-file=.env --max-old-space-size=16384 --stack-size=1024 ./node_modules/.bin/vitepress build",
-        "preview": "node --env-file=.env --max-old-space-size=16384 --stack-size=1024 ./node_modules/.bin/vitepress preview"
+        "preview": "node --env-file=.env --max-old-space-size=16384 --stack-size=1024 ./node_modules/.bin/vitepress preview",
+        "prepare": "patch-package"
     },
     "devDependencies": {
         "@eslint/compat": "^1.1.0",
         "@eslint/js": "^9.4.0",
         "@stylistic/eslint-plugin": "^2.1.0",
-        "@types/node": "^20.8.2",
-        "algoliasearch": "^4",
+        "@types/node": "^22.10.0",
+        "algoliasearch": "^5.15.0",
         "eslint": "^9.4.0",
         "eslint-plugin-n": "^17.7.0",
         "eslint-plugin-vue": "^9.9.0",
@@ -24,6 +25,7 @@
         "globals": "^15.6.0",
         "markdown-it": "^14.1.0",
         "markdown-it-image-figures": "^2.1.1",
+        "patch-package": "^8.0.0",
         "rst-compiler": "^0.4.0",
         "sass": "^1.77.6",
         "source-map-support": "^0.5.21",

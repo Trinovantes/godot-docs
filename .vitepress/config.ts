@@ -16,7 +16,7 @@ const themeSidebar = getVitepressSidebars(docCache)
 
 export default defineConfig({
     title: 'Godot',
-    srcDir: MARKDOWN_DIR,
+    srcDir: path.resolve(MARKDOWN_DIR),
     base: BASE_PATH,
 
     markdown: {

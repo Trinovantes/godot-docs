@@ -1,10 +1,8 @@
-import path from 'node:path'
-import os from 'node:os'
+export const ALGOLIA_APP_ID = 'AF7QW3H7VS'
+export const ALGOLIA_SEARCH_API_KEY = '92ba993c8ad6a6310c7f468ea46a82a7'
+export const SEARCH_INDEX = 'godot-docs'
 
-export const RST_DIR = path.resolve('./docs')
-export const MARKDOWN_DIR = path.resolve('./src/routes')
+// Assume node.js is executed from root of project
+export const RST_DIR = './docs'
+export const MARKDOWN_DIR = './src/routes'
 export const BASE_PATH = '/godot-docs/'
-
-export const NUM_THREADS = process.env.CI
-    ? 4 // GitHub actions have 4 threads
-    : os.cpus().length - 1 // Leave 1 thread for main process
