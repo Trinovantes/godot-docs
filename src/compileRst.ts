@@ -322,31 +322,40 @@ function lowercaseSet(set: Set<string>): Set<string> {
 }
 
 function postProcessBody(body: string): string {
-    // VitePress does not modify links inside html tags so we need to modify it manually
-    body = body.replaceAll(/<a href="\/(.+?)"/gm, `<a href="${BASE_PATH}$1"`)
+    {
+        // VitePress does not modify links inside html tags so we need to modify it manually
+        body = body.replaceAll(/<a href="\/(.+?)"/gm, `<a href="${BASE_PATH}$1"`)
+    }
 
-    // All assets must use relative/absolute paths in VitePress
-    // VitePress converts relative image urls if the image tags are originally in markdown (html tags are left as-is)
-    // Thus we need to search for any img tags that are not already relative/absolute and converts them to relative paths
-    const assetHtmlTagRe = new RegExp(
-        '<(?:img|source) src=' + // <img> or <source>
-        '"' +
-            '(?!' + // Negative lookbehind to exclude valid urls
-                [
-                    '\\.[/\\\\]', // Relative path
-                    '[/\\\\]', // Absolute path
-                    'https:\\/\\/', // Url
-                ].join('|') +
-            ')' +
-            '(' + // Start capture group
-                '.+?' + // Any char
-                '\\.' + // Dot
-                `(?:${assetExts})` + // Valid extensions
-            ')' + // End capture group
-        '"',
-    )
+    {
+        // All assets must use relative/absolute paths in VitePress
+        // VitePress converts relative image urls if the image tags are originally in markdown (html tags are left as-is)
+        // Thus we need to search for any img tags that are not already relative/absolute and converts them to relative paths
+        const assetHtmlTagRe = new RegExp(
+            '<(?:img|source) src=' + // <img> or <source>
+            '"' +
+                '(?!' + // Negative lookbehind to exclude valid urls
+                    [
+                        '\\.[/\\\\]', // Relative path
+                        '[/\\\\]', // Absolute path
+                        'https:\\/\\/', // Url
+                    ].join('|') +
+                ')' +
+                '(' + // Start capture group
+                    '.+?' + // Any char
+                    '\\.' + // Dot
+                    `(?:${assetExts})` + // Valid extensions
+                ')' + // End capture group
+            '"',
+        )
 
-    body = body.replaceAll(new RegExp(assetHtmlTagRe, 'gm'), '<img src="./$1"')
+        body = body.replaceAll(new RegExp(assetHtmlTagRe, 'gm'), '<img src="./$1"')
+    }
+
+    {
+        // Fix any godot doc specific bugs that are not worth opening a new pull request (technically not bugs since Sphinx heuristically processes them correctly)
+        body = body.replaceAll('](fund.godotengine.org)', '](https://fund.godotengine.org)')
+    }
 
     return body
 }
