@@ -1,11 +1,11 @@
 import { RstNodeType, RstToMdCompiler } from '../rstCompiler.js'
-import { ParserWorkerRequest, ParserWorkerRequestType, ParserWorkerResponse, ParserWorkerResponseType } from './ParserWorker.js'
+import { ParserWorkerRequest, ParserWorkerResponse } from './ParserWorker.js'
 
 // For ts to recognize this file as Worker
 declare let self: Worker
 
 function postReady() {
-    postMessage({ type: ParserWorkerResponseType.READY } satisfies ParserWorkerResponse)
+    postMessage({ type: 'READY' } satisfies ParserWorkerResponse)
 }
 
 function postResponse(msg: ParserWorkerResponse) {
@@ -14,13 +14,13 @@ function postResponse(msg: ParserWorkerResponse) {
 
 self.addEventListener('message', (event: MessageEvent<ParserWorkerRequest>) => {
     switch (event.data.type) {
-        case ParserWorkerRequestType.TERMINATE: {
-            postResponse({ type: ParserWorkerResponseType.TERMINATED })
+        case 'TERMINATE': {
+            postResponse({ type: 'TERMINATED' })
             process.exit(0)
             break
         }
 
-        case ParserWorkerRequestType.PARSE_JOB: {
+        case 'PARSE_JOB': {
             const { filePath, fileContents, parserOptions } = event.data
 
             try {
@@ -34,7 +34,7 @@ self.addEventListener('message', (event: MessageEvent<ParserWorkerRequest>) => {
                 const roles = root.findAllChildren(RstNodeType.InterpretedText).map((node) => node.role)
 
                 postResponse({
-                    type: ParserWorkerResponseType.PARSE_RESULT,
+                    type: 'PARSE_RESULT',
                     filePath,
                     timeMs: t1 - t0,
                     rootJson: root.toJSON(),
@@ -43,7 +43,7 @@ self.addEventListener('message', (event: MessageEvent<ParserWorkerRequest>) => {
                 })
             } catch (err) {
                 postResponse({
-                    type: ParserWorkerResponseType.PARSE_ERROR,
+                    type: 'PARSE_ERROR',
                     filePath,
                     error: err instanceof Error
                         ? err

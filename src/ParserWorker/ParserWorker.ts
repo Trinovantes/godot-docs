@@ -5,26 +5,25 @@ import { RstNodeJson, RstParserOptions } from '../rstCompiler.js'
 // MARK: Response
 // ----------------------------------------------------------------------------
 
-export const enum ParserWorkerResponseType {
-    READY,
-    TERMINATED,
-    PARSE_RESULT,
-    PARSE_ERROR,
-}
+export type ParserWorkerResponseType =
+    'READY' |
+    'TERMINATED' |
+    'PARSE_RESULT' |
+    'PARSE_ERROR'
 
 export type ParserWorkerResponse = {
-    type: ParserWorkerResponseType.READY
+    type: 'READY'
 } | {
-    type: ParserWorkerResponseType.TERMINATED
+    type: 'TERMINATED'
 } | {
-    type: ParserWorkerResponseType.PARSE_RESULT
+    type: 'PARSE_RESULT'
     filePath: string
     timeMs: number
     rootJson: RstNodeJson
     directives: Array<string>
     roles: Array<string>
 } | {
-    type: ParserWorkerResponseType.PARSE_ERROR
+    type: 'PARSE_ERROR'
     filePath: string
     error: Error
 }
@@ -33,15 +32,14 @@ export type ParserWorkerResponse = {
 // MARK: Request
 // ----------------------------------------------------------------------------
 
-export const enum ParserWorkerRequestType {
-    TERMINATE,
-    PARSE_JOB,
-}
+export type ParserWorkerRequestType =
+    'TERMINATE' |
+    'PARSE_JOB'
 
 export type ParserWorkerRequest = {
-    type: ParserWorkerRequestType.TERMINATE
+    type: 'TERMINATE'
 } | {
-    type: ParserWorkerRequestType.PARSE_JOB
+    type: 'PARSE_JOB'
     filePath: string
     fileContents: string
     parserOptions?: Partial<RstParserOptions>
@@ -54,11 +52,16 @@ export type ParserWorkerRequest = {
 const WORKER_SCRIPT = path.join(__dirname, 'ParserWorkerScript.ts')
 
 export class ParserWorker extends Worker {
+    public readonly id: number
+    public readonly idStr: string
+
     constructor(
-        public readonly id: number,
-        public readonly idStr: string,
+        id: number,
+        idStr: string,
     ) {
         super(WORKER_SCRIPT)
+        this.id = id
+        this.idStr = idStr
     }
 
     dispatchJob(job?: [string, string], parserOptions?: Partial<RstParserOptions>): void {
@@ -66,14 +69,14 @@ export class ParserWorker extends Worker {
 
         if (job) {
             msg = {
-                type: ParserWorkerRequestType.PARSE_JOB,
+                type: 'PARSE_JOB',
                 filePath: job[0],
                 fileContents: job[1],
                 parserOptions,
             }
         } else {
             msg = {
-                type: ParserWorkerRequestType.TERMINATE,
+                type: 'TERMINATE',
             }
         }
 

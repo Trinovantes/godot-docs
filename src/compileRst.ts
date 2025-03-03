@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { RstGeneratorInput, RstNodeJson, RstToMdCompiler } from './rstCompiler.js'
-import { ParserWorker, ParserWorkerResponse, ParserWorkerResponseType } from './ParserWorker/ParserWorker'
+import { ParserWorker, ParserWorkerResponse } from './ParserWorker/ParserWorker'
 import { DocCache } from './DocCache.js'
 import { createHighlighter } from 'shiki'
 import { formatProgress, padNum } from './utils/formatProgress.js'
@@ -146,17 +146,17 @@ async function parseDocs(documents: Map<string, string>): Promise<{
 
         worker.addEventListener('message', (msg: MessageEvent<ParserWorkerResponse>) => {
             switch (msg.data.type) {
-                case ParserWorkerResponseType.READY: {
+                case 'READY': {
                     const job = workQueue.shift()
                     worker.dispatchJob(job, { epilog })
                     break
                 }
-                case ParserWorkerResponseType.TERMINATED: {
+                case 'TERMINATED': {
                     numTerminatedWorkers += 1
                     console.info(`[${worker.toString()}] (${numTerminatedWorkers}/${NUM_THREADS}) Terminated`)
                     break
                 }
-                case ParserWorkerResponseType.PARSE_RESULT: {
+                case 'PARSE_RESULT': {
                     const { timeMs, filePath, rootJson, directives, roles } = msg.data
                     docCache.set(filePath, rootJson)
                     setUnion(directives, globalDirectives)
@@ -164,7 +164,7 @@ async function parseDocs(documents: Map<string, string>): Promise<{
                     console.info(`[${worker.toString()}] (${formatProgress(docCache.size, documents.size)}) Parsed "${filePath}" [${timeMs.toFixed(2)}ms]`)
                     break
                 }
-                case ParserWorkerResponseType.PARSE_ERROR: {
+                case 'PARSE_ERROR': {
                     const { error, filePath } = msg.data
                     console.error(`[${worker.toString()}] Encountered Error while parsing "${filePath}"`)
                     console.error(error)
