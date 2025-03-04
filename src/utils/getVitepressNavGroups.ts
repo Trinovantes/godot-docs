@@ -1,4 +1,4 @@
-import { RstNodeType, RstToMdCompiler } from '../rstCompiler.js'
+import { RstToMdCompiler } from '../rstCompiler.js'
 import { DefaultTheme } from 'vitepress'
 import path from 'node:path'
 import { getCommonPathPrefix } from './getCommonPathPrefix'
@@ -8,7 +8,7 @@ export function getVitepressNavgroups(docCache: DocCache): Required<DefaultTheme
     const navItems = new Array<DefaultTheme.NavItemWithLink | DefaultTheme.NavItemWithChildren>()
     const compiler = new RstToMdCompiler()
     const root = docCache.loadDoc(compiler, 'index')
-    const rootTocTrees = root.findAllChildren(RstNodeType.Directive).filter((node) => node.directive === 'toctree')
+    const rootTocTrees = root.findAllChildren('Directive').filter((node) => node.directive === 'toctree')
 
     for (const tocTree of rootTocTrees) {
         const label = tocTree.config?.getField('caption')
@@ -31,7 +31,7 @@ export function getVitepressNavgroups(docCache: DocCache): Required<DefaultTheme
                 activeMatch: '/' + getCommonPathPrefix(navItemPaths.map((filePath) => path.dirname(filePath))),
                 items: navItemPaths.map((filePath) => {
                     const root = docCache.loadDoc(compiler, filePath)
-                    const docTitle = root.findFirstChild(RstNodeType.Section)?.textContent ?? filePath
+                    const docTitle = root.findFirstChild('Section')?.textContent ?? filePath
 
                     return {
                         text: docTitle,

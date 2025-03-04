@@ -1,4 +1,4 @@
-import { RstNodeType, RstToMdCompiler } from '../rstCompiler.js'
+import { RstToMdCompiler } from '../rstCompiler.js'
 import { ParserWorkerRequest, ParserWorkerResponse } from './ParserWorker.js'
 
 // For ts to recognize this file as Worker
@@ -30,8 +30,8 @@ self.addEventListener('message', (event: MessageEvent<ParserWorkerRequest>) => {
                 const t1 = performance.now()
 
                 const root = parserOutput.root
-                const directives = root.findAllChildren(RstNodeType.Directive).map((node) => node.directive)
-                const roles = root.findAllChildren(RstNodeType.InterpretedText).map((node) => node.role)
+                const directives = root.findAllChildren('Directive').map((node) => node.directive)
+                const roles = root.findAllChildren('InterpretedText').map((node) => node.role)
 
                 postResponse({
                     type: 'PARSE_RESULT',

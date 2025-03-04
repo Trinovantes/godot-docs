@@ -1,4 +1,4 @@
-import { RstCompiler, RstDirective, RstNodeType, RstToMdCompiler } from '../rstCompiler.js'
+import { RstCompiler, RstDirective, RstToMdCompiler } from '../rstCompiler.js'
 import { DefaultTheme } from 'vitepress'
 import { DocCache } from '../DocCache.js'
 import path from 'node:path'
@@ -8,7 +8,7 @@ import { getTocTreeLabel } from './getTocTreeLabel.js'
 export function getVitepressSidebars(docCache: DocCache): DefaultTheme.SidebarMulti {
     const compiler = new RstToMdCompiler()
     const root = docCache.loadDoc(compiler, 'index')
-    const tocTrees = root.findAllChildren(RstNodeType.Directive).filter((node) => node.directive === 'toctree')
+    const tocTrees = root.findAllChildren('Directive').filter((node) => node.directive === 'toctree')
     const sidebar: Record<string, Array<DefaultTheme.SidebarItem>> = {}
     const addSidebar = (prefix: string, sidebarItems: Array<DefaultTheme.SidebarItem>) => {
         if (!prefix.includes('/')) {
@@ -59,7 +59,7 @@ function convertTocTreeToSidebarItems(docCache: DocCache, compiler: RstCompiler,
         .map((filePath): DefaultTheme.SidebarItem => {
             const fullPath = path.join(basePath, filePath)
             const childItems = convertIndexPageToSidebarItems(docCache, compiler, fullPath, depth + 1, maxDepth)
-            const label = docCache.loadDoc(compiler, fullPath).findFirstChild(RstNodeType.Section)?.textContent ?? fullPath
+            const label = docCache.loadDoc(compiler, fullPath).findFirstChild('Section')?.textContent ?? fullPath
 
             if (childItems.length === 0) {
                 return {
@@ -87,8 +87,8 @@ function convertIndexPageToSidebarItems(docCache: DocCache, compiler: RstCompile
 
     const basePath = path.dirname(filePath)
     const root = docCache.loadDoc(compiler, filePath)
-    const rootLabel = root.findFirstChild(RstNodeType.Section)?.textContent
-    const tocTrees = root.findAllChildren(RstNodeType.Directive).filter((node) => node.directive === 'toctree')
+    const rootLabel = root.findFirstChild('Section')?.textContent
+    const tocTrees = root.findAllChildren('Directive').filter((node) => node.directive === 'toctree')
 
     return tocTrees.map((tocTree) => ({
         text: tocTrees.length > 1

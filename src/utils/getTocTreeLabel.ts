@@ -1,4 +1,4 @@
-import { RstDirective, RstNode, RstNodeType } from '../rstCompiler.js'
+import { RstDirective, RstNode } from '../rstCompiler.js'
 
 export function getTocTreeLabel(node: RstDirective): string {
     const caption = node.config?.getField('caption')
@@ -7,7 +7,7 @@ export function getTocTreeLabel(node: RstDirective): string {
     }
 
     let prevSibling: RstNode | null = node
-    while (prevSibling !== null && prevSibling.nodeType !== RstNodeType.Section) {
+    while (prevSibling !== null && prevSibling.nodeType !== 'Section') {
         prevSibling = prevSibling.getPrevSibling()
     }
 
