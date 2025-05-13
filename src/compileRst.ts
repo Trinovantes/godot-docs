@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { RstGeneratorInput, RstNodeJson, RstToMdCompiler } from './rstCompiler.js'
+import { RstGeneratorInput, RstNodeJson, RstParserOptions, RstToMdCompiler } from './rstCompiler.js'
 import { ParserWorker, ParserWorkerResponse } from './ParserWorker/ParserWorker'
 import { DocCache } from './DocCache.js'
 import { createHighlighter } from 'shiki'
@@ -40,6 +40,10 @@ const epilog = `
     :width: 287
     :height: 66
 `
+const parserOptions: Partial<RstParserOptions> = {
+    epilog,
+    inputIndentSize: 3,
+}
 
 const compiler = new RstToMdCompiler()
 
@@ -148,7 +152,7 @@ async function parseDocs(documents: Map<string, string>): Promise<{
             switch (msg.data.type) {
                 case 'READY': {
                     const job = workQueue.shift()
-                    worker.dispatchJob(job, { epilog })
+                    worker.dispatchJob(job, parserOptions)
                     break
                 }
                 case 'TERMINATED': {
@@ -204,7 +208,10 @@ async function generateDocs(parsedDocs: ReadonlyMap<string, RstNodeJson>) {
     })
 
     const t0 = performance.now()
-    const docs: RstGeneratorInput['docs'] = [...parsedDocs.entries()].map(([docPath, rootJson]) => ({ docPath, parserOutput: compiler.parseJson(rootJson) }))
+    const docs: RstGeneratorInput['docs'] = [...parsedDocs.entries()].map(([docPath, rootJson]) => ({
+        docPath,
+        parserOutput: compiler.parseJson(rootJson, parserOptions),
+    }))
     const t1 = performance.now()
     console.info(`Parsed JSON [${(t1 - t0).toFixed(2)}ms]`)
 
