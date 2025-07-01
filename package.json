@@ -15,7 +15,7 @@
     "devDependencies": {
         "@eslint/compat": "^1.1.0",
         "@eslint/js": "^9.4.0",
-        "@stylistic/eslint-plugin": "^4.1.0",
+        "@stylistic/eslint-plugin": "^5.1.0",
         "@types/node": "^22.10.0",
         "algoliasearch": "^5.15.0",
         "eslint": "^9.4.0",
