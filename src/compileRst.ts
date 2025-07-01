@@ -364,5 +364,10 @@ function postProcessBody(body: string): string {
         body = body.replaceAll('](fund.godotengine.org)', '](https://fund.godotengine.org)')
     }
 
+    {
+        // Remove empty linebreaks in html tags
+        body = body.replaceAll(/(?<openTag><\w+(?:\s+[\w-]+=".+")+>)\n\n\s+(?<closeTag><\/\w+>)/g, '$<openTag>$<closeTag>')
+    }
+
     return body
 }

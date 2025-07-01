@@ -6,10 +6,10 @@ import { RstNodeJson, RstParserOptions } from '../rstCompiler.js'
 // ----------------------------------------------------------------------------
 
 export type ParserWorkerResponseType =
-    'READY' |
-    'TERMINATED' |
-    'PARSE_RESULT' |
-    'PARSE_ERROR'
+    | 'READY'
+    | 'TERMINATED'
+    | 'PARSE_RESULT'
+    | 'PARSE_ERROR'
 
 export type ParserWorkerResponse = {
     type: 'READY'
@@ -33,8 +33,8 @@ export type ParserWorkerResponse = {
 // ----------------------------------------------------------------------------
 
 export type ParserWorkerRequestType =
-    'TERMINATE' |
-    'PARSE_JOB'
+    | 'TERMINATE'
+    | 'PARSE_JOB'
 
 export type ParserWorkerRequest = {
     type: 'TERMINATE'
