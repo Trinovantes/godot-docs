@@ -18,6 +18,7 @@ export default defineConfig({
     title: 'Godot',
     srcDir: path.resolve(MARKDOWN_DIR),
     base: BASE_PATH,
+    ignoreDeadLinks: true,
 
     markdown: {
         html: true,
