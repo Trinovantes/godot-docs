@@ -2,7 +2,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "clean": "rm -rf ./src/.cache.json ./src/vitepress-*.json ./.vitepress/dist",
+        "clean": "rm -rf ./src/.cache.json ./.cache ./src/.vitepress-*.json ./.vitepress/dist",
         "lint": "vue-tsc --noemit && eslint --ignore-pattern \"docs/*\"",
         "index": "  bun run ./src/Search/generateSearchIndex.ts",
         "compile": "bun run ./src/compileRst.ts",

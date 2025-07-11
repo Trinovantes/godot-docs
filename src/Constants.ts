@@ -4,5 +4,5 @@ export const SEARCH_INDEX = 'godot-docs'
 
 // Assume node.js is executed from root of project
 export const RST_DIR = './docs'
-export const MARKDOWN_DIR = './src/routes'
+export const MARKDOWN_DIR = './.cache'
 export const BASE_PATH = '/godot-docs/'

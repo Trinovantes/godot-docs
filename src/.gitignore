@@ -1,3 +1,2 @@
-routes/
 .cache.json
-vitepress-*.json
+.vitepress-*.json
