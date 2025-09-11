@@ -107,6 +107,26 @@ ul.classref-property-setget{
 }
 
 // ----------------------------------------------------------------------------
+// MARK: Home Page
+// /index.html
+// ----------------------------------------------------------------------------
+
+.vp-doc{
+    .new-to-game,
+    .know-game-learn-godot,
+    .know-godot-learn-godot,
+    .contribute-to-godot {
+        color: white;
+        text-decoration: none;
+
+        &:hover{
+            color: white;
+            text-decoration: underline;
+        }
+    }
+}
+
+// ----------------------------------------------------------------------------
 // MARK: JS Domain
 // /tutorials/platform/web/html5_shell_classref.html
 // ----------------------------------------------------------------------------

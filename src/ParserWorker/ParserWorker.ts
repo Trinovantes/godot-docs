@@ -1,5 +1,6 @@
 import path from 'node:path'
-import { RstNodeJson, RstParserOptions } from '../rstCompiler.js'
+import type { RstNodeJson, RstParserOptions } from '../rstCompiler.ts'
+import { Worker } from 'node:worker_threads'
 
 // ----------------------------------------------------------------------------
 // MARK: Response
@@ -49,7 +50,7 @@ export type ParserWorkerRequest = {
 // MARK: Worker
 // ----------------------------------------------------------------------------
 
-const WORKER_SCRIPT = path.join(__dirname, 'ParserWorkerScript.ts')
+const WORKER_SCRIPT = path.join(import.meta.dirname, 'ParserWorkerScript.ts')
 
 export class ParserWorker extends Worker {
     public readonly id: number
