@@ -1,12 +1,12 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { RstGeneratorInput, RstNodeJson, RstParserOptions, RstToMdCompiler } from './rstCompiler.js'
-import { ParserWorker, ParserWorkerResponse } from './ParserWorker/ParserWorker'
-import { DocCache } from './DocCache.js'
+import { RstToMdCompiler, type RstGeneratorInput, type RstNodeJson, type RstParserOptions } from './rstCompiler.ts'
+import { ParserWorker, type ParserWorkerResponse } from './ParserWorker/ParserWorker.ts'
+import { DocCache } from './DocCache.ts'
 import { createHighlighter } from 'shiki'
-import { formatProgress, padNum } from './utils/formatProgress.js'
+import { formatProgress, padNum } from './utils/formatProgress.ts'
 import os from 'node:os'
-import { BASE_PATH, MARKDOWN_DIR, RST_DIR } from './Constants.js'
+import { BASE_PATH, MARKDOWN_DIR, RST_DIR } from './Constants.ts'
 
 // ----------------------------------------------------------------------------
 // MARK: Constants
@@ -148,8 +148,8 @@ async function parseDocs(documents: Map<string, string>): Promise<{
         const worker = new ParserWorker(id, idStr)
         workers.push(worker)
 
-        worker.addEventListener('message', (msg: MessageEvent<ParserWorkerResponse>) => {
-            switch (msg.data.type) {
+        worker.on('message', (msg: ParserWorkerResponse) => {
+            switch (msg.type) {
                 case 'READY': {
                     const job = workQueue.shift()
                     worker.dispatchJob(job, parserOptions)
@@ -161,7 +161,7 @@ async function parseDocs(documents: Map<string, string>): Promise<{
                     break
                 }
                 case 'PARSE_RESULT': {
-                    const { timeMs, filePath, rootJson, directives, roles } = msg.data
+                    const { timeMs, filePath, rootJson, directives, roles } = msg
                     docCache.set(filePath, rootJson)
                     setUnion(directives, globalDirectives)
                     setUnion(roles, globalRoles)
@@ -169,7 +169,7 @@ async function parseDocs(documents: Map<string, string>): Promise<{
                     break
                 }
                 case 'PARSE_ERROR': {
-                    const { error, filePath } = msg.data
+                    const { error, filePath } = msg
                     console.error(`[${worker.toString()}] Encountered Error while parsing "${filePath}"`)
                     console.error(error)
                     process.exit(1)
@@ -183,7 +183,7 @@ async function parseDocs(documents: Map<string, string>): Promise<{
     docCache.saveCache()
 
     for (const worker of workers) {
-        worker.terminate()
+        await worker.terminate()
     }
 
     return {

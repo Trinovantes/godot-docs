@@ -1,5 +1,5 @@
 import DefaultTheme from 'vitepress/theme'
-import { Theme } from 'vitepress'
+import type { Theme } from 'vitepress'
 import { enhanceAppWithTabs } from 'vitepress-plugin-tabs/client'
 import './custom.scss'
 

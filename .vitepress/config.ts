@@ -1,14 +1,14 @@
 import { defineConfig } from 'vitepress'
 import { tabsMarkdownPlugin } from 'vitepress-plugin-tabs'
-import { getVitepressNavgroups } from '../src/utils/getVitepressNavGroups'
-import { getVitepressSidebars } from '../src/utils/getVitepressSidebars'
-import { DocCache } from '../src/DocCache.js'
-import implicitFigures from 'markdown-it-image-figures'
+import { getVitepressNavgroups } from '../src/utils/getVitepressNavGroups.ts'
+import { getVitepressSidebars } from '../src/utils/getVitepressSidebars.ts'
+import { DocCache } from '../src/DocCache.ts'
 import fg from 'fast-glob'
 import fs from 'node:fs'
 import path from 'node:path'
-import { BASE_PATH, MARKDOWN_DIR } from '../src/Constants'
-import { createSearchPlugin } from '../src/Search/createSearchPlugin'
+import { BASE_PATH, MARKDOWN_DIR } from '../src/Constants.ts'
+import { createSearchPlugin } from '../src/Search/createSearchPlugin.ts'
+import { wrapImageInFigureTagPlugin } from './plugins/wrapImageInFigureTag.ts'
 
 const docCache = new DocCache()
 const themeNav = getVitepressNavgroups(docCache)
@@ -24,7 +24,7 @@ export default defineConfig({
         html: true,
         config: (md) => {
             md.use(tabsMarkdownPlugin)
-            md.use(implicitFigures)
+            md.use(wrapImageInFigureTagPlugin)
         },
     },
 
@@ -32,6 +32,12 @@ export default defineConfig({
         plugins: [
             createSearchPlugin(),
         ],
+
+        ssr: {
+            noExternal: [
+                'vitepress-plugin-tabs',
+            ],
+        },
     },
 
     themeConfig: {
@@ -76,7 +82,7 @@ export default defineConfig({
         }
     },
 
-    buildEnd: async({ srcDir, outDir }) => {
+    buildEnd: async ({ srcDir, outDir }) => {
         const srcFilePaths = await fg(['_downloads/**/*'], { cwd: srcDir, absolute: true })
 
         for (const srcFilePath of srcFilePaths) {

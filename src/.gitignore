@@ -1,2 +1,3 @@
 .cache.json
 .vitepress-*.json
+.search-index.json

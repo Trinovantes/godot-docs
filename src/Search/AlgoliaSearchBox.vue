@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import { onKeyStroke, useScrollLock, debouncedWatch } from '@vueuse/core'
 import { inBrowser, useData, useRouter } from 'vitepress'
-import { nextTick, onMounted, ref, shallowRef, watch, Ref } from 'vue'
-import { SearchRecord, SearchRecordHit } from './SearchRecord'
+import { nextTick, onMounted, ref, shallowRef, watch, type Ref } from 'vue'
+import type { SearchRecord, SearchRecordHit } from './SearchRecord.ts'
 import { algoliasearch } from 'algoliasearch'
-import { ALGOLIA_APP_ID, ALGOLIA_SEARCH_API_KEY } from '../Constants'
+import { ALGOLIA_APP_ID, ALGOLIA_SEARCH_API_KEY } from '../Constants.ts'
 
 const props = defineProps<{
     isOpen: boolean
@@ -56,7 +56,7 @@ onMounted(() => {
 const algoliaClient = algoliasearch(ALGOLIA_APP_ID, ALGOLIA_SEARCH_API_KEY)
 const searchQuery = ref('')
 const searchResults: Ref<Array<SearchRecordHit>> = shallowRef([])
-debouncedWatch(searchQuery, async(newSearchQuery) => {
+debouncedWatch(searchQuery, async (newSearchQuery) => {
     if (!newSearchQuery) {
         searchResults.value = []
         return

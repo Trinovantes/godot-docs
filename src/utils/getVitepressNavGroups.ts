@@ -1,8 +1,8 @@
-import { RstToMdCompiler } from '../rstCompiler.js'
-import { DefaultTheme } from 'vitepress'
+import { RstToMdCompiler } from '../rstCompiler.ts'
+import type { DefaultTheme } from 'vitepress'
 import path from 'node:path'
-import { getCommonPathPrefix } from './getCommonPathPrefix'
-import { DocCache } from '../DocCache.js'
+import { getCommonPathPrefix } from './getCommonPathPrefix.ts'
+import { DocCache } from '../DocCache.ts'
 
 export function getVitepressNavgroups(docCache: DocCache): Required<DefaultTheme.Config>['nav'] {
     const navItems = new Array<DefaultTheme.NavItemWithLink | DefaultTheme.NavItemWithChildren>()

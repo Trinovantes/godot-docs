@@ -16,14 +16,14 @@ git clone --recurse-submodules --shallow-submodules git@github.com:Trinovantes/g
 
 # Compiles the original reStructuredText documentation into markdown
 # This may take up to 3 minutes on a 12-core CPU
-yarn compile
+pnpm compile
 
 # Create and upload search index to algolia
-yarn index --upload
+pnpm index --upload
 
 # Starts dev server at localhost:8080
-yarn dev
+pnpm dev
 
 # Builds for production at .vitepress/dist
-yarn build
+pnpm build
 ```

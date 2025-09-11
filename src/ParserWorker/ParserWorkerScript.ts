@@ -1,19 +1,17 @@
-import { RstToMdCompiler } from '../rstCompiler.js'
-import { ParserWorkerRequest, ParserWorkerResponse } from './ParserWorker.js'
-
-// For ts to recognize this file as Worker
-declare let self: Worker
+import { parentPort } from 'node:worker_threads'
+import { RstToMdCompiler } from '../rstCompiler.ts'
+import type { ParserWorkerRequest, ParserWorkerResponse } from './ParserWorker.ts'
 
 function postReady() {
-    postMessage({ type: 'READY' } satisfies ParserWorkerResponse)
+    parentPort?.postMessage({ type: 'READY' } satisfies ParserWorkerResponse)
 }
 
 function postResponse(msg: ParserWorkerResponse) {
-    postMessage(msg)
+    parentPort?.postMessage(msg)
 }
 
-self.addEventListener('message', (event: MessageEvent<ParserWorkerRequest>) => {
-    switch (event.data.type) {
+parentPort?.on('message', (event: ParserWorkerRequest) => {
+    switch (event.type) {
         case 'TERMINATE': {
             postResponse({ type: 'TERMINATED' })
             process.exit(0)
@@ -21,7 +19,7 @@ self.addEventListener('message', (event: MessageEvent<ParserWorkerRequest>) => {
         }
 
         case 'PARSE_JOB': {
-            const { filePath, fileContents, parserOptions } = event.data
+            const { filePath, fileContents, parserOptions } = event
 
             try {
                 const t0 = performance.now()

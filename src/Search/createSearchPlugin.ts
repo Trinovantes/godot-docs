@@ -1,7 +1,7 @@
 import path from 'node:path'
-import { Plugin } from 'vite'
+import type { Plugin } from 'vite'
 
-const searchComponent = path.resolve(__dirname, 'AlgoliaSearch.vue')
+const searchComponent = path.resolve(import.meta.dirname, 'AlgoliaSearch.vue')
 
 export function createSearchPlugin(): Plugin {
     return {
