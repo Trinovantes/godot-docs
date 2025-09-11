@@ -1,17 +1,13 @@
 import assert from 'node:assert'
 import { algoliasearch } from 'algoliasearch'
-import { SearchRecord } from './SearchRecord'
-import { DocCache } from '../DocCache.js'
-import { RstBulletList, RstEnumeratedList, RstNode, RstParagraph, RstSection, RstToHtmlCompiler } from '../rstCompiler'
+import type { SearchRecord, SearchRecordType } from './SearchRecord.ts'
+import { RstBulletList, RstEnumeratedList, RstNode, RstParagraph, RstSection, RstToHtmlCompiler } from '../rstCompiler.ts'
 import { parseArgs } from 'node:util'
-import { formatProgress } from '@/utils/formatProgress'
 import { writeFileSync } from 'node:fs'
+import { formatProgress } from '../utils/formatProgress.ts'
+import { DocCache } from '../DocCache.ts'
+import { ALGOLIA_SEARCH_INDEX, WEBSITE_BASE_PATH, MAX_INDEX_TEXT_LENGTH, SEARCH_INDEX_FILE_PATH } from '../Constants.ts'
 import path from 'node:path'
-
-// Leave 1 KB for the other record fields
-const MAX_TEXT_LENGTH = 1024 * 9
-const OUTPUT_FILE = 'search-index.json'
-const INDEX_NAME = 'godot-docs'
 
 // ----------------------------------------------------------------------------
 // MARK: Main
@@ -39,7 +35,8 @@ async function main() {
     console.table(analysis)
 
     if (!values.upload) {
-        writeFileSync(path.join(__dirname, OUTPUT_FILE), JSON.stringify(searchRecords, null, 4))
+        console.info('Writing', SEARCH_INDEX_FILE_PATH)
+        writeFileSync(SEARCH_INDEX_FILE_PATH, JSON.stringify(searchRecords, null, 4))
         return
     }
 
@@ -49,7 +46,7 @@ async function main() {
     for (const [idx, record] of searchRecords.entries()) {
         console.info(`[${formatProgress(idx + 1, searchRecords.length)}] Uploading ${record.objectID}`)
         await client.saveObject({
-            indexName: INDEX_NAME,
+            indexName: ALGOLIA_SEARCH_INDEX,
             body: record,
         })
     }
@@ -78,7 +75,8 @@ function generateSearchRecords(): Array<SearchRecord> {
 
             // Update global hierarchy
             assertSectionLevel(node.level)
-            docHierarchy[`lvl${node.level}`] = node.textContent
+            const nodeType: SearchRecordType = `lvl${node.level}`
+            docHierarchy[nodeType] = node.textContent
 
             // Clear global hierachy of any headings beyond node.level
             for (let i = node.level + 1; i <= 6; i++) {
@@ -86,9 +84,14 @@ function generateSearchRecords(): Array<SearchRecord> {
                 delete docHierarchy[`lvl${i}`]
             }
 
+            const urlPath = `${htmlPath}#${htmlAttrResolver.getNodeHtmlId(node)}`
             const record: SearchRecord = {
-                objectID: `${htmlPath}#${htmlAttrResolver.getNodeHtmlId(node)}`,
+                url: path.join(WEBSITE_BASE_PATH, urlPath),
+                objectID: urlPath,
+                lang: 'en-US',
+                type: nodeType,
                 hierarchy: structuredClone(docHierarchy),
+                content: null,
             }
 
             return record
@@ -131,7 +134,7 @@ export function getSiblingText(node: RstNode): string {
 
         // Don't exceed record limit
         const siblingText = sibling.textContent
-        if (text.length + siblingText.length > MAX_TEXT_LENGTH) {
+        if (text.length + siblingText.length > MAX_INDEX_TEXT_LENGTH) {
             break
         }
 

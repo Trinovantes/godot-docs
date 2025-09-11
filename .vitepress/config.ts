@@ -1,14 +1,13 @@
 import { defineConfig } from 'vitepress'
 import { tabsMarkdownPlugin } from 'vitepress-plugin-tabs'
-import { getVitepressNavgroups } from '../src/utils/getVitepressNavGroups'
-import { getVitepressSidebars } from '../src/utils/getVitepressSidebars'
-import { DocCache } from '../src/DocCache.js'
-import implicitFigures from 'markdown-it-image-figures'
+import { getVitepressNavgroups } from '../src/VitePressConfig/getVitepressNavGroups.ts'
+import { getVitepressSidebars } from '../src/VitePressConfig/getVitepressSidebars.ts'
+import { DocCache } from '../src/DocCache.ts'
 import fg from 'fast-glob'
 import fs from 'node:fs'
 import path from 'node:path'
-import { BASE_PATH, MARKDOWN_DIR } from '../src/Constants'
-import { createSearchPlugin } from '../src/Search/createSearchPlugin'
+import { ALGOLIA_APP_ID, ALGOLIA_SEARCH_API_KEY, ALGOLIA_SEARCH_INDEX, WEBSITE_BASE_PATH, MARKDOWN_DIR } from '../src/Constants.ts'
+import { wrapImageInFigureTagPlugin } from './plugins/wrapImageInFigureTag.ts'
 
 const docCache = new DocCache()
 const themeNav = getVitepressNavgroups(docCache)
@@ -17,21 +16,23 @@ const themeSidebar = getVitepressSidebars(docCache)
 export default defineConfig({
     title: 'Godot',
     srcDir: path.resolve(MARKDOWN_DIR),
-    base: BASE_PATH,
+    base: WEBSITE_BASE_PATH,
     ignoreDeadLinks: true,
 
     markdown: {
         html: true,
         config: (md) => {
             md.use(tabsMarkdownPlugin)
-            md.use(implicitFigures)
+            md.use(wrapImageInFigureTagPlugin)
         },
     },
 
     vite: {
-        plugins: [
-            createSearchPlugin(),
-        ],
+        ssr: {
+            noExternal: [
+                'vitepress-plugin-tabs',
+            ],
+        },
     },
 
     themeConfig: {
@@ -49,6 +50,15 @@ export default defineConfig({
             text: 'Official Doc',
             pattern: ({ filePath }) => {
                 return `https://docs.godotengine.org/en/stable/${filePath.replace('.md', '.html')}`
+            },
+        },
+
+        search: {
+            provider: 'algolia',
+            options: {
+                appId: ALGOLIA_APP_ID,
+                apiKey: ALGOLIA_SEARCH_API_KEY,
+                indexName: ALGOLIA_SEARCH_INDEX,
             },
         },
     },
@@ -76,7 +86,7 @@ export default defineConfig({
         }
     },
 
-    buildEnd: async({ srcDir, outDir }) => {
+    buildEnd: async ({ srcDir, outDir }) => {
         const srcFilePaths = await fg(['_downloads/**/*'], { cwd: srcDir, absolute: true })
 
         for (const srcFilePath of srcFilePaths) {

@@ -1,8 +1,8 @@
 import path from 'node:path'
 import fs from 'node:fs'
-import { RstCompiler, RstDocument, RstNodeJson } from './rstCompiler.js'
+import { RstCompiler, RstDocument, type RstNodeJson } from './rstCompiler.ts'
 
-const CACHE_FILE = path.join(__dirname, '.cache.json')
+const CACHE_FILE = path.join(import.meta.dirname, '.cache.json')
 
 export class DocCache {
     private _docs: Map<string, RstNodeJson>

@@ -1,4 +1,4 @@
-import { RstDirective, RstNode } from '../rstCompiler.js'
+import { RstDirective, RstNode } from '../rstCompiler.ts'
 
 export function getTocTreeLabel(node: RstDirective): string {
     const caption = node.config?.getField('caption')

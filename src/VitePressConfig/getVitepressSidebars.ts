@@ -1,9 +1,9 @@
-import { RstCompiler, RstDirective, RstToMdCompiler } from '../rstCompiler.js'
-import { DefaultTheme } from 'vitepress'
-import { DocCache } from '../DocCache.js'
+import { RstCompiler, RstDirective, RstToMdCompiler } from '../rstCompiler.ts'
+import type { DefaultTheme } from 'vitepress'
+import { DocCache } from '../DocCache.ts'
 import path from 'node:path'
-import { getCommonPathPrefix } from './getCommonPathPrefix.js'
-import { getTocTreeLabel } from './getTocTreeLabel.js'
+import { getCommonPathPrefix } from './getCommonPathPrefix.ts'
+import { getTocTreeLabel } from './getTocTreeLabel.ts'
 
 export function getVitepressSidebars(docCache: DocCache): DefaultTheme.SidebarMulti {
     const compiler = new RstToMdCompiler()
