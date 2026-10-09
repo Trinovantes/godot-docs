@@ -22,6 +22,7 @@ export default defineConfig({
     markdown: {
         html: true,
         config: (md) => {
+            // @ts-expect-error For some reason VitePress bundles external packages' types (e.g. markdown-it) which causes its internal type of MarkdownIt to drift from 3rd party plugins' MarkdownIt
             md.use(tabsMarkdownPlugin)
             md.use(wrapImageInFigureTagPlugin)
         },

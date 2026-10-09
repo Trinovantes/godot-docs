@@ -1,6 +1,7 @@
 overrides:
-  '@types/node': '^24'
+  '@types/node': '^26'
+  'typescript': '^6'
 
 allowBuilds:
   '@parcel/watcher': false
-  esbuild: false
+  'esbuild': false
